@@ -56,8 +56,19 @@ export default function Home() {
           <div className="max-w-4xl mx-auto text-center space-y-12">
             {/* Main Headline */}
             <div className="space-y-6">
-              <h1 className="text-5xl md:text-6xl font-bold text-slate-800 tracking-tight leading-tight">
-                Empower Your Research Team Through
+              <h1 className="text-5xl md:text-6xl font-semibold text-slate-900 tracking-tight leading-tight">
+                Empower Your&nbsp;
+                <span className="relative inline-block align-baseline">
+                  <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent font-extrabold italic">
+                    Research Team
+                  </span>
+                  {/* gradient underline */}
+                  <span
+                    aria-hidden
+                    className="absolute left-0 right-0 -bottom-2 h-1 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600"
+                  />
+                </span>
+                &nbsp;:
               </h1>
               
               {/* Animated Rotating Subheadline */}
