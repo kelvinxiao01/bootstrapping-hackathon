@@ -61,11 +61,11 @@ export default function Home() {
               </h1>
               
               {/* Animated Rotating Subheadline */}
-              <div className="h-32 flex items-center justify-center">
+              <div className="h-40 flex items-center justify-center overflow-visible py-4">
                 {subheadlines.map((text, index) => (
                   <h2
                     key={index}
-                    className={`absolute text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 transition-all duration-1000 drop-shadow-lg ${
+                    className={`absolute text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 transition-all duration-1000 drop-shadow-lg leading-relaxed ${
                       currentSubheadline === index
                         ? 'opacity-100 translate-y-0'
                         : 'opacity-0 translate-y-4'
