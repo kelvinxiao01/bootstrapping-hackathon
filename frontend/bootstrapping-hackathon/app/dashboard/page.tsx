@@ -7,16 +7,29 @@ import PatientTable from '@/components/PatientTable';
 import ImportCSV from '@/components/ImportCSV';
 import Header from '@/components/Header';
 import { api } from '@/lib/api';
-import { calculateLocalEligibility } from '@/lib/eligibilityScoring';
 
 export default function Dashboard() {
   const router = useRouter();
   const [patients, setPatients] = useState<Patient[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showImport, setShowImport] = useState(false);
-  const [filterCondition, setFilterCondition] = useState<string>('all');
-  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [selectedStudyTypes, setSelectedStudyTypes] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [sortBy, setSortBy] = useState<string>('last_contacted_desc');
+  const ITEMS_PER_PAGE = 10;
+
+  const availableStudyTypes = [
+    { value: 'Diabetes', label: 'Diabetes', color: 'bg-blue-100 text-blue-800' },
+    { value: 'CKD', label: 'Chronic Kidney Disease', color: 'bg-green-100 text-green-800' },
+    { value: 'Cardiovascular', label: 'Cardiovascular', color: 'bg-red-100 text-red-800' },
+    { value: 'Oncology', label: 'Oncology', color: 'bg-purple-100 text-purple-800' },
+    { value: 'Dermatology', label: 'Dermatology', color: 'bg-yellow-100 text-yellow-800' },
+    { value: 'Metabolic', label: 'Metabolic/Obesity', color: 'bg-orange-100 text-orange-800' },
+    { value: 'Neurology', label: 'Neurology', color: 'bg-indigo-100 text-indigo-800' },
+    { value: "Women's Health", label: "Women's Health", color: 'bg-pink-100 text-pink-800' },
+  ];
 
   useEffect(() => {
     loadPatients();
@@ -40,30 +53,49 @@ export default function Dashboard() {
     };
   }, []);
 
+  useEffect(() => {
+    loadPatients();
+  }, [currentPage, sortBy, selectedStudyTypes, searchQuery]);
+
   const loadPatients = async () => {
     try {
-      const data = await api.listPatients();
-      setPatients(data);
+      setLoading(true);
+      
+      const [sortColumn, sortDirection] = sortBy.split('_');
+      const ascending = sortDirection !== 'desc';
+      
+      const result = await api.listPatients({
+        sort: { column: sortColumn, ascending },
+        limit: ITEMS_PER_PAGE,
+        offset: (currentPage - 1) * ITEMS_PER_PAGE,
+      });
+      
+      let filteredData = result.data;
+      
+      if (selectedStudyTypes.length > 0) {
+        filteredData = filteredData.filter(p => {
+          const disease = p.qualified_disease || '';
+          return selectedStudyTypes.some(type => disease.toLowerCase().includes(type.toLowerCase()));
+        });
+      }
+      
+      if (searchQuery) {
+        filteredData = filteredData.filter(p => {
+          const name = p.name || '';
+          const disease = p.qualified_disease || '';
+          return name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                 disease.toLowerCase().includes(searchQuery.toLowerCase());
+        });
+      }
+      
+      setPatients(filteredData);
+      setTotalCount(result.count);
     } catch (error) {
       console.error('Failed to load patients:', error);
     } finally {
       setLoading(false);
     }
   };
-
-  const filteredPatients = patients.filter(patient => {
-    const qualifiedDisease = patient.qualified_disease || '';
-    const topCategory = patient.top_category || '';
-    const eligibilityLabel = patient.eligibility_label || '';
-    const name = patient.name || '';
-    
-    const matchesCondition = filterCondition === 'all' || qualifiedDisease.toLowerCase().includes(filterCondition.toLowerCase());
-    const matchesStatus = filterStatus === 'all' || eligibilityLabel === filterStatus;
-    const matchesSearch = searchQuery === '' || 
-      name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      qualifiedDisease.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCondition && matchesStatus && matchesSearch;
-  });
 
   const handlePatientUpdate = async (id: string, updates: Record<string, any>) => {
     try {
@@ -93,56 +125,60 @@ export default function Dashboard() {
     }
   };
 
-  const handleRescoreEligibility = async (patient: Patient) => {
-    try {
-      const eligibility = calculateLocalEligibility(patient);
-      
-      await handlePatientUpdate(patient.patient_id, {
-        top_category: eligibility.topCategory,
-        eligibility_score: eligibility.score,
-        eligibility_label: eligibility.label,
-      });
-      
-      alert(`Eligibility recalculated: ${eligibility.score}/100 - ${eligibility.label}`);
-    } catch (error) {
-      console.error('Failed to rescore:', error);
-      alert('Failed to recalculate eligibility');
-    }
-  };
-
   const handleImportPatients = (newPatients: Patient[]) => {
     setPatients(prev => [...prev, ...newPatients]);
     setShowImport(false);
   };
 
-  const statusCounts = {
-    eligible: patients.filter(p => p.eligibility_label === 'Eligible').length,
-    needsInfo: patients.filter(p => p.eligibility_label === 'Needs Info').length,
-    ineligible: patients.filter(p => p.eligibility_label === 'Ineligible').length,
-    pending: patients.filter(p => p.status === 'Pending').length,
+  const toggleStudyType = (studyType: string) => {
+    setSelectedStudyTypes(prev => {
+      if (prev.includes(studyType)) {
+        return prev.filter(t => t !== studyType);
+      } else {
+        return [...prev, studyType];
+      }
+    });
+    setCurrentPage(1);
   };
 
-  if (loading) {
+  const studyTypeCounts = availableStudyTypes.reduce((acc, type) => {
+    acc[type.value] = patients.filter(p => 
+      (p.qualified_disease || '').toLowerCase().includes(type.value.toLowerCase())
+    ).length;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
+
+  if (loading && patients.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg text-gray-600">Loading patients...</div>
+      <div className="min-h-screen bg-[var(--background)]">
+        <Header />
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex items-center justify-center h-96">
+            <div className="text-center">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent)]"></div>
+              <p className="mt-4 text-[var(--muted)]">Loading patients...</p>
+            </div>
+          </div>
+        </main>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[var(--background)]">
       <Header />
       
-      <main className="max-w-7xl mx-auto px-6 pt-24 pb-12 space-y-8">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Patients</h1>
-            <p className="text-gray-600 mt-1">{patients.length} patients</p>
+            <h1 className="text-3xl font-bold text-[var(--foreground)]">Patients</h1>
+            <p className="text-[var(--muted)] mt-1">{totalCount} total patients</p>
           </div>
           <button
             onClick={() => setShowImport(true)}
-            className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all"
+            className="flex items-center gap-2 px-6 py-3 bg-[var(--accent)] text-white rounded-xl hover:bg-blue-700 smooth-transition font-medium"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -151,88 +187,144 @@ export default function Dashboard() {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">ELIGIBLE</p>
-                <p className="text-3xl font-bold text-green-600 mt-2">{statusCounts.eligible}</p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {availableStudyTypes.slice(0, 4).map(type => (
+            <div key={type.value} className="bg-white rounded-xl border border-[var(--border)] p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className={`text-xs font-semibold uppercase tracking-wider ${type.color.split(' ')[1]}`}>
+                    {type.label}
+                  </p>
+                  <p className="text-3xl font-bold mt-2 text-[var(--foreground)]">
+                    {studyTypeCounts[type.value] || 0}
+                  </p>
+                </div>
               </div>
-              <svg className="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
             </div>
-          </div>
-
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">NEEDS INFO</p>
-                <p className="text-3xl font-bold text-amber-600 mt-2">{statusCounts.needsInfo}</p>
-              </div>
-              <svg className="w-10 h-10 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">INELIGIBLE</p>
-                <p className="text-3xl font-bold text-red-600 mt-2">{statusCounts.ineligible}</p>
-              </div>
-              <svg className="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">PENDING</p>
-                <p className="text-3xl font-bold text-gray-600 mt-2">{statusCounts.pending}</p>
-              </div>
-              <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-          </div>
+          ))}
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1 relative">
-            <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Search patients..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+        <div className="bg-white rounded-xl border border-[var(--border)] p-6 space-y-4">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex-1 relative">
+              <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                type="text"
+                placeholder="Search patients by name or condition..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <select
+              value={sortBy}
+              onChange={(e) => {
+                setSortBy(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="last_contacted_desc">Last Contacted (Latest)</option>
+              <option value="last_contacted_asc">Last Contacted (Oldest)</option>
+              <option value="name_asc">Name (A-Z)</option>
+              <option value="name_desc">Name (Z-A)</option>
+              <option value="age_years_desc">Age (Oldest First)</option>
+              <option value="age_years_asc">Age (Youngest First)</option>
+              <option value="status_asc">Status (A-Z)</option>
+              <option value="status_desc">Status (Z-A)</option>
+            </select>
           </div>
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="all">All Statuses</option>
-            <option value="Eligible">Eligible</option>
-            <option value="Needs Info">Needs Info</option>
-            <option value="Ineligible">Ineligible</option>
-          </select>
+
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-[var(--foreground)]">Filter by Study Type:</label>
+            <div className="flex flex-wrap gap-2">
+              {availableStudyTypes.map(type => (
+                <button
+                  key={type.value}
+                  onClick={() => toggleStudyType(type.value)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                    selectedStudyTypes.includes(type.value)
+                      ? type.color + ' ring-2 ring-offset-2 ring-blue-500'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {type.label}
+                  {selectedStudyTypes.includes(type.value) && ' ✓'}
+                </button>
+              ))}
+              {selectedStudyTypes.length > 0 && (
+                <button
+                  onClick={() => setSelectedStudyTypes([])}
+                  className="px-4 py-2 rounded-lg text-sm font-medium bg-red-50 text-red-600 hover:bg-red-100"
+                >
+                  Clear Filters
+                </button>
+              )}
+            </div>
+          </div>
         </div>
 
         <PatientTable
-          patients={filteredPatients}
+          patients={patients}
           onSelectPatient={handleSelectPatient}
           onStartCall={handleStartCall}
-          onRescoreEligibility={handleRescoreEligibility}
           onUpdatePatient={(patient, updates) => handlePatientUpdate(patient.patient_id, updates)}
         />
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between bg-white rounded-xl border border-[var(--border)] p-4">
+            <div className="text-sm text-[var(--muted)]">
+              Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} to{' '}
+              {Math.min(currentPage * ITEMS_PER_PAGE, totalCount)} of {totalCount} patients
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+              >
+                Previous
+              </button>
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                let pageNum;
+                if (totalPages <= 5) {
+                  pageNum = i + 1;
+                } else if (currentPage <= 3) {
+                  pageNum = i + 1;
+                } else if (currentPage >= totalPages - 2) {
+                  pageNum = totalPages - 4 + i;
+                } else {
+                  pageNum = currentPage - 2 + i;
+                }
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                      currentPage === pageNum
+                        ? 'bg-blue-600 text-white'
+                        : 'border border-gray-200 hover:bg-gray-50'
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+              <button
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </main>
 
       {showImport && (

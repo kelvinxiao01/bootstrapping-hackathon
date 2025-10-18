@@ -12,7 +12,7 @@ const TABLE_NAME = 'Crobot Patient Database';
 
 export const api = {
   async listPatients(params: ListPatientsParams = {}) {
-    let query = supabase.from(TABLE_NAME).select('*');
+    let query = supabase.from(TABLE_NAME).select('*', { count: 'exact' });
 
     if (params.filters) {
       Object.entries(params.filters).forEach(([key, value]) => {
@@ -26,18 +26,16 @@ export const api = {
       query = query.order(params.sort.column, { ascending: params.sort.ascending });
     }
 
-    if (params.limit) {
+    if (params.limit && params.offset !== undefined) {
+      query = query.range(params.offset, params.offset + params.limit - 1);
+    } else if (params.limit) {
       query = query.limit(params.limit);
     }
 
-    if (params.offset) {
-      query = query.range(params.offset, params.offset + (params.limit || 100) - 1);
-    }
-
-    const { data, error } = await query;
+    const { data, error, count } = await query;
 
     if (error) throw error;
-    return data || [];
+    return { data: data || [], count: count || 0 };
   },
 
   async getPatient(id: string) {
@@ -61,19 +59,6 @@ export const api = {
 
     if (error) throw error;
     return data;
-  },
-
-  async rescorePatient(id: string) {
-    const patient = await this.getPatient(id);
-    const eligibility = calculateLocalEligibility(patient);
-
-    const updates = {
-      top_category: eligibility.topCategory,
-      eligibility_score: eligibility.score,
-      eligibility_label: eligibility.label,
-    };
-
-    return await this.updatePatient(id, updates);
   },
 
   async startCall(patientId: string): Promise<{ call_id: string; status: string }> {
