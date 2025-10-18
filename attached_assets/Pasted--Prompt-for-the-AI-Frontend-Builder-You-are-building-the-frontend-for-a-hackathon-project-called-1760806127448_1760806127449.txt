@@ -1,0 +1,63 @@
+🌿 Prompt for the AI (Frontend Builder)
+You are building the frontend for a hackathon project called CRO Recruiter using Next.js.
+The backend (built by someone else) is in Python, and it will handle the AI logic, patient calling, and eligibility scoring.
+Your job is to create a clean, easy-to-use dashboard interface that connects to the backend’s API.
+🧭 Project Goal
+The goal is to help call agents and research coordinators recruit and manage patients for clinical trials.
+The dashboard should:
+Show a list of patients (like an Excel sheet or CRM).
+Display key details (name, age, condition, etc.).
+Include checkboxes or status indicators showing if the patient meets eligibility criteria.
+Let users mark patients as eligible, ineligible, or needs more info.
+Allow uploading or importing patient lists.
+Be ready to connect to the backend’s endpoints for calling and scoring.
+⚙️ What to Build (Step-by-Step)
+Homepage
+Simple landing screen with a “Go to Dashboard” button.
+Dashboard Page
+Table or grid layout that shows a list of patients.
+Columns: Name, Age, Diagnosis, Medications, Test Results, Status, and Score.
+Each row has buttons or checkboxes to mark eligibility.
+Option to view or edit details of a patient.
+Filters or search bar to find patients quickly.
+Patient Detail View
+When a patient is clicked, open a side panel or page with more info:
+Basic info (age, diagnosis, medications).
+Checkboxes for inclusion/exclusion criteria.
+Button to “Recalculate Eligibility” (connects to backend later).
+Button to “Start Call” (connects to backend later).
+Import Patients
+Add a simple “Import CSV” button to upload patient data.
+Show uploaded data as new rows in the table.
+Backend Connection Setup
+Make sure all frontend functions (load patients, score eligibility, start call) can easily connect to backend URLs later.
+The backend will expose routes like:
+/patients
+/score
+/call/start
+The frontend should just fetch data from these endpoints, even if they’re mocked for now.
+AI Integration
+The AI backend will decide eligibility and return a “score” or “status.”
+Show this visually (for example: green for eligible, red for ineligible, yellow for incomplete).
+Design Style
+Simple, clean, and functional.
+Looks like an Excel grid mixed with a CRM dashboard.
+Include basic buttons (Import, Filter, View, Edit, Start Call).
+Demo Setup
+Fill with a few fake (sample) patients so the dashboard works right away.
+Clicking “Score Eligibility” should update a random score for now (until the backend connects).
+✅ Requirements
+Use Next.js for the frontend.
+Make it easy to plug in backend APIs later.
+Keep all code modular, clean, and easy to modify.
+Show fake data for now, but structure everything so it’s ready for real API integration.
+Focus on the user flow: importing → reviewing → marking eligibility → calling.
+🪄 Example Interaction Flow
+User opens the dashboard.
+They see a list of patients with key info and eligibility status.
+They click “Import CSV” to add more patients.
+They click a patient’s name to open their details and mark eligibility.
+They click “Start Call” → (later connected to backend).
+They filter by “Eligible” and export results.
+End of prompt. Build this frontend completely.
+Include working mock data and make sure the structure allows the backend team to easily connect their Python API later.
