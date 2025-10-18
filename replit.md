@@ -1,198 +1,64 @@
 # CRO Recruiter - Clinical Trial Patient Management
 
 ## Overview
-This is a **CRO Recruiter** application for clinical trial patient recruitment and management, built with Next.js frontend and Python backend (ready for AI integration).
-
-**Current State:** ✅ Fully functional frontend with mock data, ready for backend integration
-- Frontend: Next.js 15.5.6 with React 19, TypeScript, and Tailwind CSS v4
-- Backend: Python 3.11 (ready for AI calling and eligibility scoring)
-- Development server running on port 5000
-
-## Application Features
-
-### Patient Management Dashboard
-- **Patient Table View**: Excel-like grid displaying all patients with key information
-  - Name, age, diagnosis, medications, test results
-  - Eligibility scores (0-100 scale, color-coded)
-  - Status indicators (Eligible, Needs Review, Ineligible, Pending)
-  - Quick status updates via dropdown menus
-
-### Search & Filtering
-- **Search Bar**: Find patients by name or diagnosis
-- **Status Filter**: Filter by eligibility status (All, Eligible, Needs Review, Ineligible, Pending)
-- Real-time filtering without page refresh
-
-### Patient Detail View
-- **Side Panel**: Comprehensive patient information panel
-  - Basic demographics and contact information
-  - Complete medical history and medications
-  - Detailed test results (BP, cholesterol, glucose, etc.)
-  - Eligibility criteria checklist (interactive)
-  - Clinical notes (editable)
-  - Action buttons for AI features
-
-### AI Integration (Ready for Backend)
-- **Recalculate Eligibility**: Button to trigger AI scoring algorithm
-- **Start Call**: Button to initiate automated patient calling system
-- Mock implementations show expected workflow
-
-### CSV Import
-- **Drag & Drop**: Upload patient data via CSV files
-- **Preview**: Shows data before import
-- **Sample Format**: Includes example CSV structure
-- Supports: name, age, diagnosis, email, phone, medications
-
-### Backend API Layer
-Ready-to-use API service functions for:
-- `GET /patients` - Fetch all patients
-- `GET /patients/:id` - Fetch single patient
-- `POST /score` - Calculate eligibility score
-- `POST /call/start` - Initiate AI calling
-- `PATCH /patients/:id` - Update patient data
-- `POST /patients/import` - Bulk import patients
-
-## Recent Changes
-
-**October 18, 2025** - Enterprise UI Redesign (Final)
-- Complete professional redesign for enterprise healthcare use
-- **Removed ALL emojis** - replaced with professional SVG icons throughout
-- **Removed "Powered by AI" badge** and all informal elements
-- Updated color palette for medical/clinical professionalism:
-  - Primary: #2563EB (medical blue)
-  - Success: #16A34A, Error: #DC2626, Warning: #D97706
-  - Background gradient: #F9FAFB → #EEF1F6 (subtle depth)
-  - Typography: Inter font family
-- Landing page: Clean SVG icons (clipboard, phone, chart bars)
-- Dashboard: Professional status cards with SVG icons (checkmark, warning triangle, X, clock)
-- Patient table: Text-only status dropdowns, SVG document icon for empty state
-- All action buttons use primary blue color scheme
-- Status badges with semi-transparent backgrounds
-- Smooth hover transitions and 12px border radius throughout
-- Architect-approved as production-ready for enterprise deployment
-
-**October 18, 2025** - CRO Recruiter Application Built
-- Created complete patient management dashboard
-- Implemented patient table with sorting and filtering
-- Built patient detail view with eligibility criteria
-- Added CSV import functionality with drag & drop
-- Created API service layer ready for Python backend integration
-- Included 6 sample patients with realistic medical data
-- Designed clean, professional UI suitable for clinical use
-
-**October 18, 2025** - Vercel to Replit Migration
-- Configured Next.js to run on port 5000 with host binding (0.0.0.0)
-- Removed Turbopack flags from build/dev scripts for better Replit compatibility
-- Set up workflow for automatic Next.js development server
-- Configured deployment settings for production (autoscale)
-- Installed Node.js 20 and Python 3.11 environments
-- Added .gitignore for Node.js and Python projects
-
-## Project Structure
-```
-├── frontend/bootstrapping-hackathon/
-│   ├── app/
-│   │   ├── page.tsx                 # Landing page
-│   │   ├── dashboard/
-│   │   │   └── page.tsx             # Main dashboard
-│   │   ├── layout.tsx               # Root layout
-│   │   └── globals.css              # Global styles
-│   ├── components/
-│   │   ├── Header.tsx               # App header/navigation
-│   │   ├── PatientTable.tsx         # Patient data grid
-│   │   ├── PatientDetail.tsx        # Detail side panel
-│   │   └── ImportCSV.tsx            # CSV import modal
-│   ├── lib/
-│   │   ├── api.ts                   # Backend API service
-│   │   └── mockData.ts              # Sample patient data
-│   ├── types/
-│   │   └── patient.ts               # TypeScript types
-│   └── package.json
-└── backend/
-    ├── main.py                      # Python backend (ready for AI)
-    └── pyproject.toml
-```
-
-## Architecture
-
-### Frontend Stack
-- **Framework**: Next.js 15 with App Router
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS v4
-- **State Management**: React useState (client components)
-- **Development**: Next.js dev server on port 5000
-- **Deployment**: Autoscale deployment target for production
-- **Package Manager**: npm
-
-### Backend Integration Points
-The frontend is structured to easily connect to Python backend endpoints:
-
-1. **Patient Data**: `GET /patients` → Load patient list
-2. **Eligibility Scoring**: `POST /score` → AI-powered scoring
-3. **Automated Calling**: `POST /call/start` → Initiate calls
-4. **Patient Updates**: `PATCH /patients/:id` → Save changes
-5. **CSV Import**: `POST /patients/import` → Bulk data import
-
-Set `NEXT_PUBLIC_API_URL` environment variable to connect to backend.
-
-## Development Workflow
-The Next.js development server runs automatically via the "Next.js Dev Server" workflow.
-- Access the app through the webview on port 5000
-- Hot reload is enabled for instant changes
-- Mock data provides immediate functionality
-- Backend can be developed independently and connected via API
-
-## User Flow
-1. **Landing Page** → User sees app overview and features
-2. **Dashboard** → View all patients in table format
-3. **Search/Filter** → Find specific patients or status groups
-4. **Patient Details** → Click "View Details" to see full information
-5. **Update Eligibility** → Check criteria, recalculate score
-6. **Start Call** → Trigger AI calling system (backend)
-7. **Import Data** → Upload CSV files to add patients
-8. **Export/Manage** → Track recruitment progress
-
-## Sample Data Included
-6 realistic patient profiles with:
-- Varied diagnoses (Diabetes, Hypertension, Asthma, COPD, Migraine)
-- Complete medication lists
-- Test results and vital signs
-- Eligibility scores (45-92)
-- Different statuses (Eligible, Needs Review, Ineligible, Pending)
-- Contact information and clinical notes
-
-## Runtime Verification
-
-### Development Server
-✅ Server successfully boots in ~2s
-✅ Routes compile and serve without critical errors
-✅ GET requests return 200 status codes
-✅ Port 5000 binding confirmed working
-✅ Dashboard loads with 6 sample patients
-✅ Interactive features functional (search, filter, status updates)
-⚠️ Cross-origin warnings from Replit iframe environment (expected, non-critical)
-
-### Production Build & Start (Verified)
-✅ `npm run build` completes successfully in 10.5s
-✅ Optimized production bundle created
-✅ Linting and type checking passed
-✅ Static pages generated
-✅ `npm run start` launches production server in 1.2s
-✅ Production server binds to 0.0.0.0:5000 correctly
-
-## Deployment Configuration
-Located in `.replit` file:
-- **Target**: autoscale (stateless, scales with traffic)
-- **Build**: `cd frontend/bootstrapping-hackathon && npm run build`
-- **Run**: `cd frontend/bootstrapping-hackathon && npm run start`
-- **Port Mapping**: 5000 (local) → 80 (external)
-
-## Next Steps for Backend Team
-1. Create Python endpoints matching the API service layer
-2. Implement AI eligibility scoring algorithm
-3. Build automated calling system with AI agent
-4. Connect database for persistent patient storage
-5. Set up environment variable: `NEXT_PUBLIC_API_URL`
-6. Test integration with frontend mock data replacement
+This project is a **CRO Recruiter** application for clinical trial patient recruitment and management. It utilizes a Next.js frontend and a Supabase database backend. The primary purpose is to efficiently manage patient data for clinical trials, focusing on qualified study types, and providing tools for filtering, sorting, and real-time data updates. The application is production-ready and aims to streamline patient management for clinical research organizations.
 
 ## User Preferences
 None specified yet.
+
+## System Architecture
+
+### UI/UX Decisions
+The application features a professional and clean UI suitable for clinical use, with a focus on patient management. It employs a consistent color palette and uses SVG icons for clarity. The dashboard prioritizes the "Qualified Study Type" feature, making it the leftmost column with distinctive colored badges for easy identification.
+
+**Homepage Design:**
+- Soft animated aurora gradient background (subtle blue/indigo tones)
+- Hero section with main headline: "Empower Your Research Team Through"
+- Animated rotating subheadlines (3-second fade transitions):
+  - "AI-powered patient calls"
+  - "Seamless eligibility screening"
+  - "Automated follow-ups"
+- Clean enterprise palette: soft whites, light blues, slate gray
+- Professional clinical aesthetic with no emojis
+- Modern, credible, and enterprise-ready design
+
+### Technical Implementations
+- **Frontend**: Built with Next.js 15 (App Router), React 19, TypeScript, and Tailwind CSS v4.
+- **Backend**: Supabase (PostgreSQL) is used as the database.
+- **Data Handling**: Utilizes Supabase's real-time subscriptions for live dashboard updates, efficient data fetching with `.range()` for pagination, and direct Supabase service functions for patient management (list, get, update).
+- **Filtering System**: Comprehensive hybrid filtering (server-side + client-side):
+  - **Search Filter**: Debounced (300ms) search across name, phone, and email fields with OR logic (server-side)
+  - **Contact Status Filter**: Exact match filter (All, Pending, Contacted, Interested, Onboard, Needs Info, Ineligible, Unreachable, Do Not Contact) (server-side)
+  - **Study Type Filter**: Multi-select with AND semantics - matches patients qualified for ALL selected study types (intersection) using keyword matching (client-side)
+  - **Filter Aliases**: CVD matches "cvd/cardiovascular/heart"; CKD matches "ckd/kidney"; uses same logic as UI badges
+  - Handles complex disease strings with separators (e.g., "Chronic Kidney Disease & Diabetes")
+  - All filters combined with accurate pagination counts
+- **Sorting**: Options for 'Last Contacted', 'Name', 'Age', and 'Status' with ascending/descending toggle.
+- **Pagination**: Displays 10 patients per page with intuitive navigation and accurate total counts.
+- **CSV Import**: Supports drag-and-drop CSV uploads with a preview feature.
+- **Eligibility Scoring**: Local, rule-based scoring algorithm (client-side) for patient eligibility, cached in Supabase.
+- **Dynamic Fields**: Supports 54-column flexible patient data model with dynamic conversion from snake_case to human-readable labels.
+
+### Feature Specifications
+- **Patient Management Dashboard**: Displays patient data with a primary focus on "Qualified Study Type" (8 categories: Diabetes, CKD, Cardiovascular, Oncology, Dermatology, Metabolic/Obesity, Neurology, Women's Health). Includes stat cards for study type counts.
+- **Advanced Filtering & Sorting**: Search by name/condition, multi-select study type filter, and 8 sorting options.
+- **Patient Table View**: Features columns for Qualified Study Type, Patient details, Current Status (Pending, Contacted, Interested, Onboard), Last Contacted date, and Actions (view details, start call).
+- **CSV Import**: Facilitates uploading patient data with a defined sample format.
+
+### System Design Choices
+- **Frontend-centric Logic**: Most of the core logic, including eligibility scoring, is handled on the client-side for performance, interacting directly with Supabase.
+- **Real-time Capabilities**: Leverages Supabase subscriptions for instant UI updates upon data changes.
+- **Modular Structure**: Organized project with clear separation of components, services, and types.
+
+## External Dependencies
+- **Supabase**: Used for database (PostgreSQL), real-time subscriptions, and authentication (via API keys).
+  - **Table name**: `CrobotMaster`
+  - **Primary key**: `patient_id` (string)
+  - **Schema**: 54 columns with snake_case names
+  - **RLS Configuration**: Row Level Security must be configured for data access
+    - Disable RLS for testing: `ALTER TABLE "CrobotMaster" DISABLE ROW LEVEL SECURITY;`
+    - Or create read policy: `CREATE POLICY "Allow public read access" ON "CrobotMaster" FOR SELECT TO public USING (true);`
+- **Next.js**: Frontend framework.
+- **React**: UI library.
+- **TypeScript**: Programming language.
+- **Tailwind CSS**: Styling framework.

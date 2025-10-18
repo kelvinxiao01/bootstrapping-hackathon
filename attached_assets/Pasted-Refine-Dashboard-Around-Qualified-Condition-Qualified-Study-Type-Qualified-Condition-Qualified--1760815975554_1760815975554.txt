@@ -1,0 +1,31 @@
+Refine Dashboard Around “Qualified Condition” (Qualified Study Type)
+Qualified Condition (Qualified Study Type)
+Treat qualified_disease as Qualified Condition / Qualified Study Type — this is the primary element used to filter and identify candidates.
+Make it distinctive in the UI:
+Use colored badges or pill-style tags for each study type.
+Keep colors subtle but consistent (e.g., Diabetes = blue, CKD = green, Cardiovascular = red).
+Position it as the leftmost column and ensure it draws visual focus.
+Remove any “Eligibility Recalculation” buttons or logic entirely.
+Remove Columns
+Delete the Top Matched Trial and Eligibility columns from all dashboard and detail views — they are no longer needed.
+Filtering (Fix Current Behavior)
+The current filtering defaults to “Upcoming Status.” Replace this so that the primary filter is Qualified Study Type (qualified_disease).
+Allow multi-select filtering — if a patient is qualified for multiple study types, they should appear when any selected type matches.
+Example: if filters “Diabetes” and “CKD” are selected, show patients who are in either or both groups.
+Continue to display Current Status, but do not auto-sort or filter by it.
+The backend AI will later update “Upcoming Status,” but for now, just show Current Status as a static field.
+Pagination
+Show only 10 patients per page.
+Add clear pagination controls (Previous, Next, Page Numbers).
+Implement using Supabase pagination (.range((page-1)*10, page*10-1)).
+Sorting
+Add a Sort By dropdown to the dashboard (user-selectable):
+Last Contacted (default, descending)
+Name (A–Z)
+Age (Descending)
+Status (A–Z)
+Remove automatic sorting by “Upcoming Status.”
+Sorting should work seamlessly with pagination and filtering combined.
+Goal:
+Make “Qualified Condition” the most visually and functionally important feature of the dashboard. Users should be able to quickly identify, filter, and sort candidates by their qualified study type while still seeing current status and contact information.
+Build exactly this.

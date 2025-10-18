@@ -1,0 +1,165 @@
+Perfect — here’s a single, copy-paste **build prompt** that **removes OpenAI**, keeps everything **Supabase-first**, and generates a **hypothetical eligibility score locally** (deterministic rules) based on the data you already store. It preserves your user flow and lets you cache results back to Supabase so the grid stays in sync.
+
+---
+
+## Prompt: Supabase-Driven Dashboard with Local (No-AI) Eligibility Scoring
+
+Build/modify the **Next.js** frontend for **CRO Recruiter** so it:
+
+* Pulls all patient data **directly from Supabase** (`patients` table).
+* **Does not call OpenAI** for now.
+* Computes a **local “hypothetical eligibility score”** and **top matched trial category** purely from the patient’s fields (deterministic rules below).
+* (Optional) Caches the computed `top_category`, `eligibility_score`, and `eligibility_label` back to Supabase if those columns exist.
+
+### 0) Env (don’t hardcode)
+
+```
+NEXT_PUBLIC_SUPABASE_URL=https://wtjmctlvnhamqkhgqyul.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<<<the anon key provided>>>
+```
+
+Create a reusable Supabase browser client and use it for all reads/writes.
+
+### 1) Schema-driven UI (no CSV assumptions)
+
+* Introspect `patients` columns at runtime (via `information_schema.columns` or `select('*').limit(1)`).
+* Render only columns that exist.
+* **Display labels** must be human-readable (no underscores):
+
+  * Default: snake_case → Title Case (replace `_` with space, capitalize).
+  * Overrides for units:
+    `eGFR_ml_min_1.73m2_recent → Recent eGFR (mL/min/1.73m²)`
+    `ntprobnp_pg_ml → NT-proBNP (pg/mL)`
+    `anc_10e9_L → ANC (×10⁹/L)`
+    `platelets_10e9_L → Platelets (×10⁹/L)`
+    `qtc_ms_recent → Recent QTc (ms)`
+
+### 2) Pages & Flow
+
+**Homepage (info + CTA)**
+Short product overview and a primary **Enter Dashboard** button.
+
+**Main Dashboard (Overview)**
+Row = patient. Show (if present): `name/full_name`, `phone/phone_number`, `qualified_condition/qualified_disease`, `status`, `last_contacted`, **Top Category**, **Eligibility Score**.
+Actions (icons centered; no emojis): **View Details**, **Start Call**, **Re-score** (local compute).
+
+**Patient Detail Page**
+Sections: Overview (status, top category, score), **Eligibility Summary (label + short reasons)**, **Clinical Data** (all available fields in a clean key/value table), **Actions** (Start Call, Update Status).
+
+### 3) Local (No-AI) Eligibility Scoring
+
+Implement a **pure frontend** scoring function (no network) that:
+
+* Chooses **one** “Top Category” from a **fixed generic list** (below).
+* Computes a numeric **score (0–100)** based on simple rules.
+* Emits a **label**: “Eligible” (≥80), “Needs Info” (50–79), “Ineligible” (<50).
+* Emits **reasons[]** (short strings) explaining the result.
+
+**Fixed Generic Trial Categories (pick the best fit available for the record):**
+
+1. **Diabetes Trials**
+   *Heuristics (if fields present):*
+
+   * +30 if `diabetes_dx == 'Y'` or `diabetes_type` present.
+   * +20 if `a1c_pct_recent >= 7.0 && a1c_pct_recent <= 10.0`, else +10 if A1C exists but out of range.
+   * +10 if `eGFR_ml_min_1.73m2_recent >= 45`.
+   * −15 if `pregnancy_status` indicates pregnant.
+   * −20 if `active_cancer == 'Y'`.
+   * **Pick this category** if diabetes fields exist (dx/type/A1C) and net score for this bucket is the highest.
+
+2. **Cardiovascular Trials**
+
+   * +25 if any of (`mi_history`, `stroke_tia_history`, `pad_history`) == 'Y'.
+   * +15 if `hf_history == 'Y'`.
+   * +10 if `lvef_pct` present (bonus +10 if `lvef_pct >= 50`).
+   * +10 if `statin_current == 'Y'` (signals secondary prevention context).
+   * −15 if `active_cancer == 'Y'`.
+   * **Pick if cardio history present and this bucket scores highest.**
+
+3. **Chronic Kidney Disease Trials**
+
+   * +25 if `ckd_stage` in {2,3}.
+   * +20 if `eGFR_ml_min_1.73m2_recent` between 30 and 89; +10 if any eGFR present.
+   * −15 if `pregnancy_status` indicates pregnant.
+   * **Pick if CKD fields present and highest score.**
+
+4. **Eczema / Dermatology Trials**
+
+   * +30 if `qualified_condition` or `qualified_disease` mentions “Eczema” or “Dermatology”.
+   * +10 if no major exclusions (pregnancy, active cancer).
+   * **Pick if dermatology signal present and highest score.**
+
+5. **Oncology Trials**
+
+   * +25 if `active_cancer == 'Y'`.
+   * +10 if `cancer_primary_site` and `cancer_stage` exist.
+   * +10 if `treatment_status` present.
+   * **Pick if active cancer context and highest score.**
+
+6. **Women’s Health Trials**
+
+   * +20 if `pregnancy_status` known (contextual), +10 if female sex at birth.
+   * −20 if conflicting severe comorbidity flags present (e.g., decompensated HF if you can infer).
+   * **Pick if pregnancy/female context dominates and score wins.**
+
+7. **Metabolic / Obesity Trials**
+
+   * +25 if `bmi >= 30`, +10 if `bmi >= 27`.
+   * +10 if any diabetes/metabolic markers present (A1C, lipids surrogate like statin use).
+   * **Pick if BMI/metabolic signals strongest.**
+
+8. **Neurology Trials**
+
+   * +25 if `stroke_tia_history == 'Y'`.
+   * +10 if any neuro/cardiometabolic risk markers present (BP known).
+   * **Pick if neuro signal strongest.**
+
+9. **Preventive Health Trials** (fallback)
+
+   * +10 if basic vitals present; +10 if no major exclusions; neutral otherwise.
+   * **Pick if nothing else beats it.**
+
+**Scoring Details:**
+
+* Start each category with `score = 0`. Apply add/subtract rules only if the relevant fields exist.
+* Choose the **category with the highest score**; if tie, prefer the category most specific to present diagnoses (order: Oncology > Diabetes > CKD > Cardiovascular > Eczema > Metabolic > Neurology > Women’s Health > Preventive).
+* **Label:**
+
+  * `Eligible` if score ≥ 80
+  * `Needs Info` if 50–79 or if any **required** field for that category is missing (e.g., A1C missing for Diabetes, eGFR missing for CKD)
+  * `Ineligible` if < 50 or conflicting exclusions triggered
+* **Reasons:** push short messages as you apply rules, e.g.,
+  “Diabetes dx present”, “A1C 8.3 in range”, “eGFR 42 below threshold”, “Active cancer exclusion”.
+
+**Where to compute:**
+
+* Compute entirely in the **frontend** (pure function).
+* Wire **Re-score** to recompute locally (no network).
+* If Supabase has columns `top_category`, `eligibility_score`, `eligibility_label`, **upsert** the computed values so the grid shows cached results and realtime updates work.
+
+### 4) Data Layer (Supabase)
+
+* `listPatients({ filters, sort, limit, offset })` → select only overview fields that exist; otherwise `*` and pick client-side.
+* `getPatient(id)` → `select('*').eq('id', id).single()`
+* `updatePatient(id, patch)` → write `status`, `last_contacted`, optional cached `top_category`, `eligibility_score`, `eligibility_label`.
+* Realtime subscription on `patients` for `UPDATE` to live-update rows.
+
+### 5) Calling (unchanged)
+
+* **Start Call** hits your existing Python backend call endpoint with `patient_id`.
+* If you receive call outcomes, write `last_contacted`/`status` back to Supabase so the UI updates.
+
+### 6) UI Rules
+
+* Keep current palette/gradient; **no emojis**, **no “Powered by AI”**.
+* Icons centered; correct semantics (phone, refresh, view).
+* All headers/labels prettified (no underscores) via the label helper.
+
+### 7) Success Criteria
+
+* Dashboard and detail pages **pull only from Supabase**.
+* “Re-score” runs **locally** and updates the row (and Supabase cache if columns exist).
+* Category + score + label + reasons display instantly.
+* Realtime reflects Supabase changes without reload.
+
+**Build exactly this.**
