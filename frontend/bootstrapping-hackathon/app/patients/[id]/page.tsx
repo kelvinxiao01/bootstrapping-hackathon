@@ -32,16 +32,17 @@ export default function PatientDetailPage() {
   const handleStartCall = async () => {
     if (!patient) return;
     try {
-      const result = await api.startCall(patient.id);
-      alert(`Call started successfully! Call ID: ${result.call_id}`);
-      await api.updatePatient(patient.id, {
-        last_contacted: new Date().toISOString().split('T')[0],
+      const result = await api.startCall(patient); // Pass entire patient object
+      alert(`Call started successfully! Job ID: ${result.job_id}`);
+      await api.updatePatient(patient.patient_id, {
+        last_contacted: new Date().toISOString(), // Full ISO timestamp for timestamptz
         status: 'Contacted',
       });
       loadPatient();
     } catch (error) {
       const name = patient.name || patient.full_name || 'Patient';
-      alert(`Mock: Initiating call to ${name}...`);
+      console.error('Call failed:', error);
+      alert(`Failed to start call to ${name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
