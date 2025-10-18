@@ -18,6 +18,7 @@ export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [sortBy, setSortBy] = useState<string>('last_contacted_desc');
+  const [callNotification, setCallNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const ITEMS_PER_PAGE = 10;
 
   const availableStudyTypes = [
@@ -111,7 +112,8 @@ export default function Dashboard() {
 
   // Client-side filtering, sorting, and pagination
   const { patients, totalCount } = (() => {
-    let filtered = [...allPatients];
+    // Remove any null/undefined entries from the array
+    let filtered = allPatients.filter(p => p != null);
 
     // 1. Filter by search query (name, phone, email)
     if (searchQuery.trim()) {
@@ -146,8 +148,13 @@ export default function Dashboard() {
     const sortDirection = sortBy.substring(lastUnderscoreIndex + 1);
 
     filtered.sort((a, b) => {
-      const aValue = (a as any)[sortColumn] || '';
-      const bValue = (b as any)[sortColumn] || '';
+      const aValue = (a as any)[sortColumn];
+      const bValue = (b as any)[sortColumn];
+
+      // Handle null/undefined values - push them to the end
+      if (aValue == null && bValue == null) return 0;
+      if (aValue == null) return 1;
+      if (bValue == null) return -1;
 
       let comparison = 0;
       if (typeof aValue === 'string') {
@@ -172,7 +179,10 @@ export default function Dashboard() {
   const handlePatientUpdate = async (id: string, updates: Record<string, any>) => {
     try {
       const updated = await api.updatePatient(id, updates);
-      setAllPatients(prev => prev.map(p => p.patient_id === id ? updated : p));
+      // Only update local state if we got a valid response
+      if (updated) {
+        setAllPatients(prev => prev.map(p => p.patient_id === id ? updated : p));
+      }
     } catch (error) {
       console.error('Failed to update patient:', error);
     }
@@ -183,23 +193,34 @@ export default function Dashboard() {
   };
 
   const handleStartCall = async (patient: Patient) => {
+    setCallNotification(null); // Clear previous notification
+
     try {
       const result = await api.startCall(patient); // Pass entire patient object
-      alert(`Call started successfully! Job ID: ${result.job_id}`);
+      setCallNotification({
+        type: 'success',
+        message: `Call launched successfully! Job ID: ${result.job_id}`
+      });
 
       await handlePatientUpdate(patient.patient_id, {
         last_contacted: new Date().toISOString(), // Full ISO timestamp for timestamptz
         status: 'Contacted',
       });
+
+      // Auto-hide success notification after 5 seconds
+      setTimeout(() => setCallNotification(null), 5000);
     } catch (error) {
       const name = patient.name || 'Patient';
       console.error('Call failed:', error);
-      alert(`Failed to start call to ${name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setCallNotification({
+        type: 'error',
+        message: `Failed to start call to ${name}: ${error instanceof Error ? error.message : 'Unknown error'}`
+      });
     }
   };
 
   const handleImportPatients = (newPatients: Patient[]) => {
-    setPatients(prev => [...prev, ...newPatients]);
+    setAllPatients(prev => [...prev, ...newPatients]);
     setShowImport(false);
   };
 
@@ -451,6 +472,42 @@ export default function Dashboard() {
           onClose={() => setShowImport(false)}
           onImport={handleImportPatients}
         />
+      )}
+
+      {callNotification && (
+        <div className="fixed bottom-8 right-8 max-w-md z-50 animate-in slide-in-from-bottom-5">
+          <div className={`p-4 rounded-xl border-2 shadow-lg ${
+            callNotification.type === 'success'
+              ? 'bg-green-50 border-green-200 text-green-800'
+              : 'bg-red-50 border-red-200 text-red-800'
+          }`}>
+            <div className="flex items-start gap-3">
+              {callNotification.type === 'success' ? (
+                <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              )}
+              <div className="flex-1">
+                <p className="font-semibold text-sm">
+                  {callNotification.type === 'success' ? 'Call Launched' : 'Call Failed'}
+                </p>
+                <p className="text-sm mt-1">{callNotification.message}</p>
+              </div>
+              <button
+                onClick={() => setCallNotification(null)}
+                className="text-current opacity-70 hover:opacity-100"
+              >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
