@@ -77,10 +77,10 @@ export default function PatientTable({ patients, onSelectPatient, onUpdatePatien
           </thead>
           <tbody>
             {patients.map((patient) => {
-              const patientId = patient.id || patient.patient_id || '';
-              const name = patient.name || patient.full_name || 'Unknown';
-              const email = patient.email || patient.phone_number || patient.phone || '';
-              const qualifiedCondition = patient.qualified_condition || patient.qualified_disease || 'N/A';
+              const patientId = patient.patient_id;
+              const name = patient.name || 'Unknown';
+              const email = patient.email || patient.phone || '';
+              const qualifiedDisease = patient.qualified_disease || 'N/A';
               const topCategory = patient.top_category || 'Not Scored';
               const eligibilityScore = patient.eligibility_score ?? 0;
               const eligibilityLabel = patient.eligibility_label || 'Pending';
@@ -109,7 +109,7 @@ export default function PatientTable({ patients, onSelectPatient, onUpdatePatien
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-sm text-[var(--foreground)]">{qualifiedCondition}</div>
+                    <div className="text-sm text-[var(--foreground)]">{qualifiedDisease}</div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-sm text-[var(--foreground)] font-medium">{topCategory}</div>

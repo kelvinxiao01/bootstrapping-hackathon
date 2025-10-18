@@ -17,79 +17,60 @@ export interface EligibilityResult {
 }
 
 export interface Patient {
-  id?: string;
-  patient_id?: string;
-  
+  patient_id: string;
   name?: string;
-  full_name?: string;
-  email?: string;
   phone?: string;
-  phone_number?: string;
-  
-  dob?: string;
-  age?: number;
-  sex?: string;
+  email?: string;
+  birth_date?: string;
+  age_years?: number;
+  sex_at_birth?: string;
   height_cm?: number;
   weight_kg?: number;
   bmi?: number;
-  
-  systolic_bp?: number;
-  diastolic_bp?: number;
-  
+  sbp?: number;
+  dbp?: number;
   smoking_status?: string;
   pack_years?: number;
-  
   diabetes_dx?: string;
   diabetes_type?: string;
   a1c_pct_recent?: number;
-  
-  ckd_stage?: number | string;
+  a1c_date?: string;
+  ckd_stage?: string;
   egfr_ml_min_1_73m2_recent?: number;
-  
-  alt?: number;
-  ast?: number;
-  bilirubin?: number;
-  
+  egfr_date?: string;
+  alt_u_l?: number;
+  ast_u_l?: number;
+  bilirubin_mg_dl?: number;
   mi_history?: string;
   stroke_tia_history?: string;
   pad_history?: string;
   hf_history?: string;
   lvef_pct?: number;
-  nyha_class?: number | string;
-  
+  lvef_date?: string;
+  nyha_class?: string;
   statin_current?: string;
   anticoagulant_current?: string;
   sglt2_current?: string;
   glp1_current?: string;
   insulin_current?: string;
-  medication_list?: string;
-  
   ntprobnp_pg_ml?: number;
-  troponin?: number;
-  ldl_mg_dl?: number;
-  hdl_mg_dl?: number;
-  triglycerides_mg_dl?: number;
-  
-  eczema_history?: string;
-  iga_score?: number;
-  
+  troponin_ng_l?: number;
   active_cancer?: string;
   cancer_primary_site?: string;
   cancer_stage?: string;
   treatment_status?: string;
-  
+  last_treatment_type?: string;
+  last_treatment_date?: string;
+  ecog_status?: number;
+  has_measurable_disease_recist?: string;
+  anc_10e9_l?: number;
+  hemoglobin_g_dl?: number;
+  platelets_10e9_l?: number;
+  qtc_ms_recent?: number;
   pregnancy_status?: string;
-  
-  qualified_condition?: string;
   qualified_disease?: string;
-  top_category?: string;
-  eligibility_score?: number;
-  eligibility_label?: string;
-  
-  status?: string;
   last_contacted?: string;
-  notes?: string;
-  created_at?: string;
+  status?: string;
 
   [key: string]: any;
 }

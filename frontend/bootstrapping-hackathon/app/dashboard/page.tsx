@@ -27,17 +27,11 @@ export default function Dashboard() {
       if (payload.eventType === 'INSERT' && payload.new) {
         setPatients(prev => [...prev, payload.new]);
       } else if (payload.eventType === 'UPDATE' && payload.new) {
-        const newId = payload.new.id || payload.new.patient_id;
-        setPatients(prev => prev.map(p => {
-          const pId = p.id || p.patient_id;
-          return pId === newId ? payload.new : p;
-        }));
+        setPatients(prev => prev.map(p => 
+          p.patient_id === payload.new.patient_id ? payload.new : p
+        ));
       } else if (payload.eventType === 'DELETE' && payload.old) {
-        const oldId = payload.old.id || payload.old.patient_id;
-        setPatients(prev => prev.filter(p => {
-          const pId = p.id || p.patient_id;
-          return pId !== oldId;
-        }));
+        setPatients(prev => prev.filter(p => p.patient_id !== payload.old.patient_id));
       }
     });
 
@@ -58,58 +52,52 @@ export default function Dashboard() {
   };
 
   const filteredPatients = patients.filter(patient => {
-    const qualifiedCondition = patient.qualified_condition || patient.qualified_disease || '';
+    const qualifiedDisease = patient.qualified_disease || '';
     const topCategory = patient.top_category || '';
     const eligibilityLabel = patient.eligibility_label || '';
-    const name = patient.name || patient.full_name || '';
+    const name = patient.name || '';
     
-    const matchesCondition = filterCondition === 'all' || qualifiedCondition.toLowerCase().includes(filterCondition.toLowerCase());
+    const matchesCondition = filterCondition === 'all' || qualifiedDisease.toLowerCase().includes(filterCondition.toLowerCase());
     const matchesStatus = filterStatus === 'all' || eligibilityLabel === filterStatus;
     const matchesSearch = searchQuery === '' || 
       name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      qualifiedCondition.toLowerCase().includes(searchQuery.toLowerCase());
+      qualifiedDisease.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCondition && matchesStatus && matchesSearch;
   });
 
   const handlePatientUpdate = async (id: string, updates: Record<string, any>) => {
     try {
       const updated = await api.updatePatient(id, updates);
-      setPatients(prev => prev.map(p => {
-        const pId = p.id || p.patient_id;
-        return pId === id ? updated : p;
-      }));
+      setPatients(prev => prev.map(p => p.patient_id === id ? updated : p));
     } catch (error) {
       console.error('Failed to update patient:', error);
     }
   };
 
   const handleSelectPatient = (patient: Patient) => {
-    const patientId = patient.id || patient.patient_id || '';
-    router.push(`/patients/${patientId}`);
+    router.push(`/patients/${patient.patient_id}`);
   };
 
   const handleStartCall = async (patient: Patient) => {
-    const patientId = patient.id || patient.patient_id || '';
     try {
-      const result = await api.startCall(patientId);
+      const result = await api.startCall(patient.patient_id);
       alert(`Call started successfully! Call ID: ${result.call_id}`);
       
-      await handlePatientUpdate(patientId, {
+      await handlePatientUpdate(patient.patient_id, {
         last_contacted: new Date().toISOString().split('T')[0],
         status: 'Contacted',
       });
     } catch (error) {
-      const name = patient.name || patient.full_name || 'Patient';
+      const name = patient.name || 'Patient';
       alert(`Mock: Initiating call to ${name}...`);
     }
   };
 
   const handleRescoreEligibility = async (patient: Patient) => {
-    const patientId = patient.id || patient.patient_id || '';
     try {
       const eligibility = calculateLocalEligibility(patient);
       
-      await handlePatientUpdate(patientId, {
+      await handlePatientUpdate(patient.patient_id, {
         top_category: eligibility.topCategory,
         eligibility_score: eligibility.score,
         eligibility_label: eligibility.label,
@@ -243,10 +231,7 @@ export default function Dashboard() {
           onSelectPatient={handleSelectPatient}
           onStartCall={handleStartCall}
           onRescoreEligibility={handleRescoreEligibility}
-          onUpdatePatient={(patient, updates) => {
-            const patientId = patient.id || patient.patient_id || '';
-            handlePatientUpdate(patientId, updates);
-          }}
+          onUpdatePatient={(patient, updates) => handlePatientUpdate(patient.patient_id, updates)}
         />
       </main>
 

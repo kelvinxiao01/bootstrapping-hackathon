@@ -132,8 +132,9 @@ export function calculateLocalEligibility(patient: any): EligibilityResult {
     const reasons: string[] = [];
     let missingRequired = false;
 
-    if (patient.ckd_stage !== null && patient.ckd_stage !== undefined) {
-      if ([2, 3].includes(Number(patient.ckd_stage))) {
+    if (patient.ckd_stage) {
+      const stage = String(patient.ckd_stage).toLowerCase();
+      if (stage.includes('2') || stage.includes('3')) {
         score += 25;
         reasons.push(`CKD Stage ${patient.ckd_stage}`);
       }
@@ -171,15 +172,10 @@ export function calculateLocalEligibility(patient: any): EligibilityResult {
     const reasons: string[] = [];
     let missingRequired = false;
 
-    const condition = patient.qualified_condition || patient.qualified_disease || '';
-    if (condition.toLowerCase().includes('eczema') || condition.toLowerCase().includes('dermatology')) {
+    const qualifiedDisease = patient.qualified_disease || '';
+    if (qualifiedDisease.toLowerCase().includes('eczema') || qualifiedDisease.toLowerCase().includes('dermatology') || qualifiedDisease.toLowerCase().includes('atopic')) {
       score += 30;
       reasons.push('Dermatology condition present');
-    }
-
-    if (patient.eczema_history === 'Y') {
-      score += 20;
-      reasons.push('Eczema history documented');
     }
 
     if (!patient.pregnancy_status?.toLowerCase().includes('pregnant') && patient.active_cancer !== 'Y') {
@@ -216,6 +212,11 @@ export function calculateLocalEligibility(patient: any): EligibilityResult {
       reasons.push(`Treatment status: ${patient.treatment_status}`);
     }
 
+    if (patient.ecog_status !== null && patient.ecog_status !== undefined) {
+      score += 5;
+      reasons.push(`ECOG status: ${patient.ecog_status}`);
+    }
+
     categoryScores.push({
       category: 'Oncology Trials',
       score,
@@ -235,7 +236,7 @@ export function calculateLocalEligibility(patient: any): EligibilityResult {
       reasons.push('Pregnancy status documented');
     }
 
-    if (patient.sex === 'F' || patient.sex === 'Female') {
+    if (patient.sex_at_birth === 'F' || patient.sex_at_birth === 'Female') {
       score += 10;
       reasons.push('Female patient');
     }
@@ -293,7 +294,7 @@ export function calculateLocalEligibility(patient: any): EligibilityResult {
       reasons.push('Stroke/TIA history');
     }
 
-    if (patient.systolic_bp || patient.diastolic_bp) {
+    if (patient.sbp || patient.dbp) {
       score += 10;
       reasons.push('Vascular risk markers present');
     }
@@ -312,7 +313,7 @@ export function calculateLocalEligibility(patient: any): EligibilityResult {
     const reasons: string[] = [];
     let missingRequired = false;
 
-    if (patient.systolic_bp || patient.diastolic_bp || patient.bmi) {
+    if (patient.sbp || patient.dbp || patient.bmi) {
       score += 10;
       reasons.push('Basic vitals available');
     }
