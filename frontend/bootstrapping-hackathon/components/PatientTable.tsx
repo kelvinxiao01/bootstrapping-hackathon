@@ -56,11 +56,10 @@ export default function PatientTable({ patients, onSelectPatient, onUpdatePatien
             </tr>
           </thead>
           <tbody>
-            {patients.map((patient, index) => (
+            {patients.map((patient) => (
               <tr
                 key={patient.id}
-                className="border-b border-[var(--border)] last:border-0 smooth-transition hover:bg-gray-50/50 scale-in"
-                style={{ animationDelay: `${index * 0.05}s` }}
+                className="border-b border-[var(--border)] last:border-0 smooth-transition hover:bg-gray-50/50"
               >
                 <td className="px-6 py-4">
                   <div className="flex items-center space-x-3">
