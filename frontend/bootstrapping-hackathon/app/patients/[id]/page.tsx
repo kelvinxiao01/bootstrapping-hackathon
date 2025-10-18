@@ -59,21 +59,6 @@ export default function PatientDetailPage() {
     alert('Follow-up request sent');
   };
 
-  const handleRescore = async () => {
-    if (!patient) return;
-    try {
-      const eligibility = calculateLocalEligibility(patient);
-      await api.updatePatient(patient.id, {
-        top_category: eligibility.topCategory,
-        eligibility_score: eligibility.score,
-        eligibility_label: eligibility.label,
-      });
-      loadPatient();
-      alert(`Eligibility recalculated: ${eligibility.score}/100 - ${eligibility.label}`);
-    } catch (error) {
-      console.error('Failed to rescore:', error);
-    }
-  };
 
   if (loading) {
     return (
@@ -181,35 +166,62 @@ export default function PatientDetailPage() {
 
             <div className="bg-white rounded-2xl border border-[var(--border)] p-6 shadow-sm">
               <h2 className="text-xl font-semibold text-[var(--foreground)] mb-6">Eligibility Summary</h2>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
+              <div className="space-y-6">
+                <div className="flex items-center justify-between pb-4 border-b border-gray-100">
                   <div>
-                    <p className="text-sm text-[var(--muted)] mb-1">Category</p>
-                    <p className="text-lg font-semibold text-[var(--foreground)]">{topCategory}</p>
+                    <p className="text-sm text-[var(--muted)] mb-1">Qualified Study Type</p>
+                    <p className="text-lg font-semibold text-[var(--foreground)]">{qualifiedCondition}</p>
                   </div>
-                  <span className={`inline-flex px-4 py-2 rounded-lg text-sm font-medium ${labelColor(eligibilityLabel)}`}>
-                    {eligibilityLabel}
-                  </span>
                 </div>
                 <div>
-                  <p className="text-sm text-[var(--muted)] mb-1">Eligibility Score</p>
-                  <p className={`text-3xl font-bold ${scoreColor(eligibilityScore)}`}>
-                    {eligibilityScore}/100
-                  </p>
+                  <p className="text-sm text-[var(--muted)] mb-3 font-semibold">Key Criteria</p>
+                  <div className="space-y-3">
+                    {eligibilityData.reasons.length > 0 ? (
+                      eligibilityData.reasons.map((reason, index) => {
+                        const isNegative = reason.toLowerCase().includes('exclusion') || 
+                                          reason.toLowerCase().includes('below') || 
+                                          reason.toLowerCase().includes('outside');
+                        return (
+                          <div key={index} className={`flex items-start space-x-3 p-3 rounded-lg ${isNegative ? 'bg-red-50' : 'bg-green-50'}`}>
+                            <svg className={`w-5 h-5 mt-0.5 flex-shrink-0 ${isNegative ? 'text-red-600' : 'text-green-600'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              {isNegative ? (
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              ) : (
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              )}
+                            </svg>
+                            <div className="flex-1">
+                              <span className={`text-sm font-medium ${isNegative ? 'text-red-800' : 'text-green-800'}`}>{reason}</span>
+                            </div>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <p className="text-sm text-[var(--muted)] italic">No criteria data available</p>
+                    )}
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm text-[var(--muted)] mb-2">Key Criteria</p>
-                  <ul className="space-y-2">
-                    {eligibilityData.reasons.map((reason, index) => (
-                      <li key={index} className="flex items-start space-x-2">
-                        <svg className="w-5 h-5 text-[var(--success)] mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span className="text-sm text-[var(--foreground)]">{reason}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                {patient.age && (
+                  <div className="pt-3 border-t border-gray-100">
+                    <p className="text-sm text-[var(--muted)] mb-2">Patient Demographics</p>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <p className="text-xs text-[var(--muted)]">Age</p>
+                        <p className="text-base font-semibold text-[var(--foreground)]">{age} years</p>
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <p className="text-xs text-[var(--muted)]">Sex</p>
+                        <p className="text-base font-semibold text-[var(--foreground)]">{sex}</p>
+                      </div>
+                      {bmi !== 'N/A' && (
+                        <div className="bg-gray-50 p-3 rounded-lg col-span-2">
+                          <p className="text-xs text-[var(--muted)]">BMI</p>
+                          <p className="text-base font-semibold text-[var(--foreground)]">{bmi}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -246,16 +258,6 @@ export default function PatientDetailPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                   </svg>
                   Start Call
-                </button>
-
-                <button
-                  onClick={handleRescore}
-                  className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl transition-all"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-                  Re-score Eligibility
                 </button>
 
                 <div>
