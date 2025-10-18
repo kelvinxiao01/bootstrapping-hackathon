@@ -3,6 +3,8 @@ import { calculateLocalEligibility } from './eligibilityScoring';
 
 export interface ListPatientsParams {
   filters?: Record<string, any>;
+  studyTypes?: string[];
+  searchQuery?: string;
   sort?: { column: string; ascending: boolean };
   limit?: number;
   offset?: number;
@@ -13,6 +15,20 @@ const TABLE_NAME = 'Crobot Patient Database';
 export const api = {
   async listPatients(params: ListPatientsParams = {}) {
     let query = supabase.from(TABLE_NAME).select('*', { count: 'exact' });
+
+    if (params.studyTypes && params.studyTypes.length > 0) {
+      const studyTypeFilters = params.studyTypes
+        .map(type => `qualified_disease.ilike.%${type}%`)
+        .join(',');
+      query = query.or(studyTypeFilters);
+    }
+
+    if (params.searchQuery && params.searchQuery.trim()) {
+      const search = params.searchQuery.trim();
+      query = query.or(
+        `full_name.ilike.%${search}%,qualified_disease.ilike.%${search}%`
+      );
+    }
 
     if (params.filters) {
       Object.entries(params.filters).forEach(([key, value]) => {

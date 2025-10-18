@@ -1,0 +1,35 @@
+Refine Dashboard Around “Qualified Condition” (Qualified Study Type)
+Qualified Condition (Qualified Study Type)
+Treat qualified_disease as Qualified Condition / Qualified Study Type — this is the primary element used to filter and identify candidates.
+Make it visually distinctive in the UI:
+Use colored badges or pill-style tags for each study type.
+Keep colors subtle but consistent (e.g., Diabetes = blue, CKD = green, Cardiovascular = red).
+Pin it as the leftmost column so it’s always visible and recognizable.
+Remove any “Eligibility Recalculation” buttons or logic.
+Remove Columns
+Completely remove the Top Matched Trial and Eligibility columns from both the dashboard and the patient detail page.
+Filtering (Fix Current Behavior)
+The current filter defaults to sorting by “Upcoming Status.”
+Replace this so that Qualified Study Type (qualified_disease) becomes the primary filter.
+Allow multi-select filtering — if a patient is qualified for multiple study types, they should appear when any selected filter matches.
+Filtering must apply to the entire dataset, not just the 10 records shown on the current page.
+In other words, fetch and filter the full list of matching patients before applying pagination (so pagination reflects the filtered results, not the full dataset).
+Continue showing Current Status (static display only); the backend AI will later update “Upcoming Status,” but don’t filter or sort by it now.
+Pagination
+Show 10 patients per page after filtering.
+Add pagination controls (Previous / Next / Page Numbers).
+Implement using Supabase pagination:
+.range((page-1)*10, page*10-1)
+Make sure pagination applies after filtering.
+Sorting
+Add a Sort By dropdown with the following options:
+Last Contacted (default, descending)
+Name (A–Z)
+Age (Descending)
+Status (A–Z)
+Remove automatic sorting by “Upcoming Status.”
+Sorting should work together with filtering and pagination.
+Goal:
+Make Qualified Condition the center of the user experience — visually prominent, easily filterable across the entire dataset, and cleanly paginated 10 per page.
+Remove unnecessary eligibility features and ensure filtering + sorting feel seamless and professional.
+Build exactly this.

@@ -54,6 +54,10 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedStudyTypes, searchQuery, sortBy]);
+
+  useEffect(() => {
     loadPatients();
   }, [currentPage, sortBy, selectedStudyTypes, searchQuery]);
 
@@ -67,30 +71,14 @@ export default function Dashboard() {
       const ascending = sortDirection !== 'desc';
       
       const result = await api.listPatients({
+        studyTypes: selectedStudyTypes.length > 0 ? selectedStudyTypes : undefined,
+        searchQuery: searchQuery || undefined,
         sort: { column: sortColumn, ascending },
         limit: ITEMS_PER_PAGE,
         offset: (currentPage - 1) * ITEMS_PER_PAGE,
       });
       
-      let filteredData = result.data;
-      
-      if (selectedStudyTypes.length > 0) {
-        filteredData = filteredData.filter(p => {
-          const disease = p.qualified_disease || '';
-          return selectedStudyTypes.some(type => disease.toLowerCase().includes(type.toLowerCase()));
-        });
-      }
-      
-      if (searchQuery) {
-        filteredData = filteredData.filter(p => {
-          const name = p.name || '';
-          const disease = p.qualified_disease || '';
-          return name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                 disease.toLowerCase().includes(searchQuery.toLowerCase());
-        });
-      }
-      
-      setPatients(filteredData);
+      setPatients(result.data);
       setTotalCount(result.count);
     } catch (error) {
       console.error('Failed to load patients:', error);
