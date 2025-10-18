@@ -1,15 +1,16 @@
 'use client';
 
-import { use, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import { mockPatients } from '@/lib/mockData';
 import { Patient } from '@/types/patient';
 
-export default function PatientDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default function PatientDetailPage() {
   const router = useRouter();
-  const { id } = use(params);
-  const patient = mockPatients.find(p => p.id === id);
-  const [localPatient, setLocalPatient] = useState<Patient | undefined>(patient);
+  const params = useParams();
+  const id = params.id as string;
+  const initialPatient = mockPatients.find(p => p.id === id);
+  const [localPatient, setLocalPatient] = useState<Patient | undefined>(initialPatient);
 
   if (!localPatient) {
     return (
