@@ -1,18 +1,20 @@
 'use client';
 
-import { Patient, EligibilityStatus } from '@/types/patient';
+import { Patient } from '@/types/patient';
 
 interface PatientTableProps {
   patients: Patient[];
   onSelectPatient: (patient: Patient) => void;
   onUpdatePatient: (patient: Patient) => void;
+  onStartCall: (patient: Patient) => void;
+  onRescoreEligibility: (patient: Patient) => void;
 }
 
-const statusConfig: Record<EligibilityStatus, { color: string; bg: string; label: string }> = {
-  eligible: { color: 'text-[var(--success)]', bg: 'bg-green-50/80', label: 'Eligible' },
-  ineligible: { color: 'text-[var(--error)]', bg: 'bg-red-50/80', label: 'Ineligible' },
-  needs_review: { color: 'text-[var(--warning)]', bg: 'bg-amber-50/80', label: 'Needs Review' },
-  pending: { color: 'text-[var(--muted)]', bg: 'bg-gray-100', label: 'Pending' },
+const statusConfig: Record<Patient['currentStatus'], { color: string; bg: string }> = {
+  Pending: { color: 'text-gray-700', bg: 'bg-gray-100' },
+  Contacted: { color: 'text-blue-700', bg: 'bg-blue-50/80' },
+  Interested: { color: 'text-green-700', bg: 'bg-green-50/80' },
+  Onboard: { color: 'text-purple-700', bg: 'bg-purple-50/80' },
 };
 
 const scoreColor = (score: number): string => {
@@ -21,9 +23,15 @@ const scoreColor = (score: number): string => {
   return 'text-[var(--error)]';
 };
 
-export default function PatientTable({ patients, onSelectPatient, onUpdatePatient }: PatientTableProps) {
-  const handleStatusChange = (patient: Patient, newStatus: EligibilityStatus) => {
-    onUpdatePatient({ ...patient, status: newStatus });
+const labelColor = (label: string): string => {
+  if (label === 'Eligible') return 'text-[var(--success)] bg-green-50/80';
+  if (label === 'Ineligible') return 'text-[var(--error)] bg-red-50/80';
+  return 'text-[var(--warning)] bg-amber-50/80';
+};
+
+export default function PatientTable({ patients, onSelectPatient, onUpdatePatient, onStartCall, onRescoreEligibility }: PatientTableProps) {
+  const handleStatusChange = (patient: Patient, newStatus: Patient['currentStatus']) => {
+    onUpdatePatient({ ...patient, currentStatus: newStatus });
   };
 
   return (
@@ -36,22 +44,22 @@ export default function PatientTable({ patients, onSelectPatient, onUpdatePatien
                 Patient
               </th>
               <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
-                Age
+                Qualified Condition
               </th>
               <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
-                Diagnosis
+                Top Matched Trial
               </th>
               <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
-                Medications
+                Eligibility
               </th>
               <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
-                Score
+                Current Status
               </th>
               <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
-                Status
+                Last Contacted
               </th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
-                
+              <th className="px-6 py-4 text-center text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
+                Actions
               </th>
             </tr>
           </thead>
@@ -76,44 +84,70 @@ export default function PatientTable({ patients, onSelectPatient, onUpdatePatien
                     </div>
                   </div>
                 </td>
-                <td className="px-6 py-4 text-sm text-[var(--foreground)]">
-                  {patient.age}
+                <td className="px-6 py-4">
+                  <div className="text-sm text-[var(--foreground)]">{patient.qualifiedCondition}</div>
                 </td>
                 <td className="px-6 py-4">
-                  <div className="text-sm text-[var(--foreground)]">{patient.diagnosis}</div>
+                  <div className="text-sm text-[var(--foreground)] font-medium">{patient.eligibility.topCategory}</div>
                 </td>
                 <td className="px-6 py-4">
-                  <div className="text-sm text-[var(--muted)]">
-                    {patient.medications.slice(0, 2).join(', ')}
-                    {patient.medications.length > 2 && (
-                      <span className="text-[var(--accent)]"> +{patient.medications.length - 2}</span>
-                    )}
+                  <div className="space-y-1">
+                    <span className={`inline-flex px-3 py-1 rounded-lg text-xs font-medium ${labelColor(patient.eligibility.label)}`}>
+                      {patient.eligibility.label}
+                    </span>
+                    <div className={`text-sm font-mono ${scoreColor(patient.eligibility.score)}`}>
+                      Score: {patient.eligibility.score}
+                    </div>
                   </div>
                 </td>
                 <td className="px-6 py-4">
-                  <span className={`text-sm font-mono ${scoreColor(patient.score)}`}>
-                    {patient.score > 0 ? patient.score : '—'}
-                  </span>
-                </td>
-                <td className="px-6 py-4">
                   <select
-                    value={patient.status}
-                    onChange={(e) => handleStatusChange(patient, e.target.value as EligibilityStatus)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium ${statusConfig[patient.status].color} ${statusConfig[patient.status].bg} border-0 cursor-pointer smooth-transition hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/20`}
+                    value={patient.currentStatus}
+                    onChange={(e) => handleStatusChange(patient, e.target.value as Patient['currentStatus'])}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium ${statusConfig[patient.currentStatus].color} ${statusConfig[patient.currentStatus].bg} border-0 cursor-pointer smooth-transition hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/20`}
                   >
-                    <option value="eligible">Eligible</option>
-                    <option value="needs_review">Needs Review</option>
-                    <option value="ineligible">Ineligible</option>
-                    <option value="pending">Pending</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Contacted">Contacted</option>
+                    <option value="Interested">Interested</option>
+                    <option value="Onboard">Onboard</option>
                   </select>
                 </td>
                 <td className="px-6 py-4">
-                  <button
-                    onClick={() => onSelectPatient(patient)}
-                    className="text-sm font-medium text-[var(--accent)] hover:text-blue-700 smooth-transition"
-                  >
-                    View
-                  </button>
+                  <div className="text-sm text-[var(--muted)]">
+                    {patient.lastContactedDate ? new Date(patient.lastContactedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
+                  </div>
+                </td>
+                <td className="px-6 py-4">
+                  <div className="flex items-center justify-center space-x-2">
+                    <button
+                      onClick={() => onSelectPatient(patient)}
+                      className="p-2 text-[var(--accent)] hover:bg-blue-50 rounded-lg smooth-transition"
+                      title="View Details"
+                    >
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => onStartCall(patient)}
+                      className="p-2 text-green-600 hover:bg-green-50 rounded-lg smooth-transition"
+                      title="Start Call"
+                    >
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => onRescoreEligibility(patient)}
+                      className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg smooth-transition"
+                      title="Re-score Eligibility"
+                    >
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}

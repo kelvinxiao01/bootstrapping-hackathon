@@ -1,33 +1,58 @@
 'use client';
 
 import { useState } from 'react';
-import { Patient, EligibilityStatus } from '@/types/patient';
+import { useRouter } from 'next/navigation';
+import { Patient } from '@/types/patient';
 import { mockPatients } from '@/lib/mockData';
 import PatientTable from '@/components/PatientTable';
-import PatientDetail from '@/components/PatientDetail';
 import ImportCSV from '@/components/ImportCSV';
 import Header from '@/components/Header';
+import { api } from '@/lib/api';
 
 export default function Dashboard() {
+  const router = useRouter();
   const [patients, setPatients] = useState<Patient[]>(mockPatients);
-  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [showImport, setShowImport] = useState(false);
-  const [filterStatus, setFilterStatus] = useState<EligibilityStatus | 'all'>('all');
+  const [filterCondition, setFilterCondition] = useState<string>('all');
+  const [filterStatus, setFilterStatus] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredPatients = patients.filter(patient => {
-    const matchesStatus = filterStatus === 'all' || patient.status === filterStatus;
+    const matchesCondition = filterCondition === 'all' || patient.qualifiedCondition.toLowerCase().includes(filterCondition.toLowerCase());
+    const matchesStatus = filterStatus === 'all' || patient.eligibility.label === filterStatus;
     const matchesSearch = searchQuery === '' || 
       patient.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      patient.diagnosis.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesStatus && matchesSearch;
+      patient.qualifiedCondition.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCondition && matchesStatus && matchesSearch;
   });
 
   const handlePatientUpdate = (updatedPatient: Patient) => {
     setPatients(prev => 
       prev.map(p => p.id === updatedPatient.id ? updatedPatient : p)
     );
-    setSelectedPatient(updatedPatient);
+  };
+
+  const handleSelectPatient = (patient: Patient) => {
+    router.push(`/patients/${patient.id}`);
+  };
+
+  const handleStartCall = async (patient: Patient) => {
+    try {
+      const result = await api.startCall(patient.id);
+      alert(`Call started successfully! Call ID: ${result.call_id}`);
+    } catch (error) {
+      alert(`Mock: Initiating call to ${patient.name}...`);
+    }
+  };
+
+  const handleRescoreEligibility = async (patient: Patient) => {
+    try {
+      const eligibility = await api.calculateEligibility(patient.id);
+      handlePatientUpdate({ ...patient, eligibility });
+      alert(`Eligibility recalculated: ${eligibility.score}/100`);
+    } catch (error) {
+      alert('Mock: Eligibility rescored using AI');
+    }
   };
 
   const handleImportPatients = (newPatients: Patient[]) => {
@@ -36,10 +61,10 @@ export default function Dashboard() {
   };
 
   const statusCounts = {
-    eligible: patients.filter(p => p.status === 'eligible').length,
-    needs_review: patients.filter(p => p.status === 'needs_review').length,
-    ineligible: patients.filter(p => p.status === 'ineligible').length,
-    pending: patients.filter(p => p.status === 'pending').length,
+    eligible: patients.filter(p => p.eligibility.label === 'Eligible').length,
+    needsInfo: patients.filter(p => p.eligibility.label === 'Needs Info').length,
+    ineligible: patients.filter(p => p.eligibility.label === 'Ineligible').length,
+    pending: patients.filter(p => p.currentStatus === 'Pending').length,
   };
 
   return (
@@ -54,7 +79,6 @@ export default function Dashboard() {
             </h1>
             <p className="text-sm text-[var(--muted)]">
               {filteredPatients.length} {filteredPatients.length === 1 ? 'patient' : 'patients'}
-              {filterStatus !== 'all' && ` · ${filterStatus.replace('_', ' ')}`}
             </p>
           </div>
 
@@ -89,8 +113,8 @@ export default function Dashboard() {
           <div className="p-4 rounded-xl bg-white border border-[var(--border)] smooth-transition hover-lift">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-[var(--muted)] uppercase tracking-wider mb-1">Needs Review</p>
-                <p className="text-2xl font-semibold text-[var(--warning)]">{statusCounts.needs_review}</p>
+                <p className="text-xs text-[var(--muted)] uppercase tracking-wider mb-1">Needs Info</p>
+                <p className="text-2xl font-semibold text-[var(--warning)]">{statusCounts.needsInfo}</p>
               </div>
               <div className="w-10 h-10 rounded-lg bg-amber-50/80 flex items-center justify-center">
                 <svg className="w-5 h-5 text-[var(--warning)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -145,31 +169,24 @@ export default function Dashboard() {
           
           <select
             value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value as EligibilityStatus | 'all')}
+            onChange={(e) => setFilterStatus(e.target.value)}
             className="px-4 py-3 border border-[var(--border)] rounded-xl bg-white text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/20 smooth-transition cursor-pointer"
           >
             <option value="all">All Statuses</option>
-            <option value="eligible">Eligible</option>
-            <option value="needs_review">Needs Review</option>
-            <option value="ineligible">Ineligible</option>
-            <option value="pending">Pending</option>
+            <option value="Eligible">Eligible</option>
+            <option value="Needs Info">Needs Info</option>
+            <option value="Ineligible">Ineligible</option>
           </select>
         </div>
 
         <PatientTable
           patients={filteredPatients}
-          onSelectPatient={setSelectedPatient}
+          onSelectPatient={handleSelectPatient}
           onUpdatePatient={handlePatientUpdate}
+          onStartCall={handleStartCall}
+          onRescoreEligibility={handleRescoreEligibility}
         />
       </main>
-
-      {selectedPatient && (
-        <PatientDetail
-          patient={selectedPatient}
-          onClose={() => setSelectedPatient(null)}
-          onUpdate={handlePatientUpdate}
-        />
-      )}
 
       {showImport && (
         <ImportCSV
