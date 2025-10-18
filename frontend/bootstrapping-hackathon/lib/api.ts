@@ -58,11 +58,10 @@ export const api = {
       .from(TABLE_NAME)
       .update(updates)
       .eq('patient_id', id)
-      .select()
-      .single();
+      .select();
 
     if (error) throw error;
-    return data;
+    return data && data.length > 0 ? data[0] : null;
   },
 
   async startCall(patient: any): Promise<{ success: boolean; room_name: string; job_id: string; message: string }> {
