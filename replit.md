@@ -53,6 +53,22 @@ Ready-to-use API service functions for:
 
 ## Recent Changes
 
+**October 18, 2025** - Minimalist UI Redesign
+- Complete visual overhaul inspired by Linear, Notion, and Airtable
+- Switched to Inter font for professional, clean typography
+- Implemented calm color palette: #F9FAFB background, #0EA5E9 accent, #10B981 success
+- Added glass morphism header with backdrop-blur
+- Created smooth CSS animations (fade-in, slide-in, scale-in, hover-lift)
+- Redesigned all components with soft shadows and 12-16px border radius
+- Added status summary cards with icons on dashboard
+- Implemented patient avatars with gradient backgrounds
+- Created minimalist drag-and-drop CSV import modal
+- Smooth slide-in patient detail panel with organized sections
+- Custom checkbox design for eligibility criteria
+- Loading states with spinners for async actions
+- Staggered animations for table rows
+- Professional medical-grade aesthetic with approachable feel
+
 **October 18, 2025** - CRO Recruiter Application Built
 - Created complete patient management dashboard
 - Implemented patient table with sorting and filtering
