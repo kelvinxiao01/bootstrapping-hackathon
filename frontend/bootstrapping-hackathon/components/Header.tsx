@@ -6,7 +6,7 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
           <Link href="/" className="flex items-center space-x-3 group">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--accent)] to-blue-600 flex items-center justify-center smooth-transition group-hover:scale-105">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--accent)] to-blue-700 flex items-center justify-center smooth-transition group-hover:scale-105">
               <span className="text-white text-sm font-semibold">CR</span>
             </div>
             <span className="text-lg font-semibold text-[var(--foreground)] tracking-tight">
