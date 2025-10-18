@@ -41,9 +41,6 @@ const getAllStudyTypeBadges = (disease: string): Array<{ label: string; color: s
   if (lowerDisease.includes('neurology') || lowerDisease.includes('stroke')) {
     badges.push({ label: 'Neurology', color: 'bg-indigo-100 text-indigo-800 border-indigo-200' });
   }
-  if (lowerDisease.includes('women')) {
-    badges.push({ label: "Women's Health", color: 'bg-pink-100 text-pink-800 border-pink-200' });
-  }
   
   if (badges.length === 0) {
     badges.push({ label: disease || 'None', color: 'bg-gray-100 text-gray-800 border-gray-200' });
