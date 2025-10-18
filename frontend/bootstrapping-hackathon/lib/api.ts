@@ -17,15 +17,13 @@ export const api = {
     let query = supabase.from(TABLE_NAME).select('*', { count: 'exact' });
 
     if (params.studyTypes && params.studyTypes.length > 0) {
-      const studyTypeFilters = params.studyTypes
-        .map(type => {
-          if (type === 'CVD') {
-            return `qualified_disease.ilike.%CVD%,qualified_disease.ilike.%Cardiovascular%`;
-          }
-          return `qualified_disease.ilike.%${type}%`;
-        })
-        .join(',');
-      query = query.or(studyTypeFilters);
+      params.studyTypes.forEach(type => {
+        if (type === 'CVD') {
+          query = query.or(`qualified_disease.ilike.%CVD%,qualified_disease.ilike.%Cardiovascular%`);
+        } else {
+          query = query.ilike('qualified_disease', `%${type}%`);
+        }
+      });
     }
 
     if (params.searchQuery && params.searchQuery.trim()) {
