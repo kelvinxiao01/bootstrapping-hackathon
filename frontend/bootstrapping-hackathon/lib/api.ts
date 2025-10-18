@@ -13,6 +13,30 @@ export interface ListPatientsParams {
 
 const TABLE_NAME = 'CrobotMaster';
 
+function matchesStudyType(qualifiedDisease: string, studyType: string): boolean {
+  const lowerDisease = (qualifiedDisease || '').toLowerCase();
+  
+  switch (studyType) {
+    case 'Diabetes':
+      return lowerDisease.includes('diabetes');
+    case 'Chronic Kidney Disease':
+      return lowerDisease.includes('ckd') || lowerDisease.includes('kidney');
+    case 'Cardiovascular Disease':
+    case 'CVD':
+      return lowerDisease.includes('cardiovascular') || lowerDisease.includes('cvd') || lowerDisease.includes('heart');
+    case 'Oncology':
+      return lowerDisease.includes('oncology') || lowerDisease.includes('cancer');
+    case 'Dermatology':
+      return lowerDisease.includes('dermatology') || lowerDisease.includes('eczema') || lowerDisease.includes('skin');
+    case 'Metabolic/Obesity':
+      return lowerDisease.includes('metabolic') || lowerDisease.includes('obesity');
+    case 'Neurology':
+      return lowerDisease.includes('neurology') || lowerDisease.includes('stroke');
+    default:
+      return lowerDisease.includes(studyType.toLowerCase());
+  }
+}
+
 export const api = {
   async listPatients(params: ListPatientsParams = {}) {
     let query = supabase.from(TABLE_NAME).select('*', { count: 'exact' });
@@ -33,18 +57,6 @@ export const api = {
       query = query.eq('status', params.contactStatus);
     }
 
-    if (hasStudyTypes) {
-      params.studyTypes!.forEach(type => {
-        if (type === 'CVD') {
-          query = query.or(`qualified_disease.ilike.%CVD%,qualified_disease.ilike.%Cardiovascular%`);
-        } else if (type === 'Chronic Kidney Disease') {
-          query = query.or(`qualified_disease.ilike.%CKD%,qualified_disease.ilike.%Chronic Kidney Disease%`);
-        } else {
-          query = query.ilike('qualified_disease', `%${type}%`);
-        }
-      });
-    }
-
     if (params.filters) {
       Object.entries(params.filters).forEach(([key, value]) => {
         if (value !== null && value !== undefined && value !== '') {
@@ -57,16 +69,35 @@ export const api = {
       query = query.order(params.sort.column, { ascending: params.sort.ascending });
     }
 
-    if (params.limit && params.offset !== undefined) {
-      query = query.range(params.offset, params.offset + params.limit - 1);
-    } else if (params.limit) {
-      query = query.limit(params.limit);
+    if (!hasStudyTypes) {
+      if (params.limit && params.offset !== undefined) {
+        query = query.range(params.offset, params.offset + params.limit - 1);
+      } else if (params.limit) {
+        query = query.limit(params.limit);
+      }
+      
+      const { data, error, count } = await query;
+      if (error) throw error;
+      return { data: data || [], count: count || 0 };
     }
 
-    const { data, error, count } = await query;
-
+    const { data, error } = await query;
     if (error) throw error;
-    return { data: data || [], count: count || 0 };
+
+    const filteredData = (data || []).filter(patient => {
+      const qualifiedDisease = patient.qualified_disease || patient.qualified_condition || '';
+      return params.studyTypes!.every(studyType => matchesStudyType(qualifiedDisease, studyType));
+    });
+
+    const totalCount = filteredData.length;
+    
+    const paginatedData = params.limit && params.offset !== undefined
+      ? filteredData.slice(params.offset, params.offset + params.limit)
+      : params.limit
+      ? filteredData.slice(0, params.limit)
+      : filteredData;
+
+    return { data: paginatedData, count: totalCount };
   },
 
   async getPatient(id: string) {
