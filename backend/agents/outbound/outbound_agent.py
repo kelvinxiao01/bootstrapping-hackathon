@@ -9,8 +9,9 @@ from pathlib import Path
 from typing import Dict, Any
 from dotenv import load_dotenv
 
-# Add the current directory to sys.path for imports
+# Add the current directory and parent directory to sys.path for imports
 sys.path.append(str(Path(__file__).parent))
+sys.path.append(str(Path(__file__).parent.parent.parent))
 
 from livekit import agents, api, rtc
 from livekit.agents import (
@@ -25,6 +26,7 @@ from livekit.agents import (
     RoomInputOptions
 )
 from livekit.plugins import deepgram, openai, cartesia, silero, noise_cancellation
+from services.supabase_service import SupabaseService
 
 
 load_dotenv()
@@ -191,6 +193,16 @@ Keep conversations RESPECTFUL and informative. Be prepared to discuss:
 - Compensation (if applicable)
 - Contact information for questions
 
+DATABASE UPDATES - Automatic contact tracking:
+
+The system automatically updates the database when a participant responds:
+- Status is automatically set to "Contacted" when the participant says something substantial (more than 2-3 words)
+- This happens within the first 10-15 seconds of conversation
+- Ensures tracking even if the call drops unexpectedly
+- Only updates once per call (no duplicates)
+
+You also have a mark_contacted() tool available if you need to manually trigger the update, but in most cases it happens automatically.
+
 Organization Info:
 - Phone: {ORGANIZATION_PHONE}
 - Hours: Mon-Fri 9AM-5PM
@@ -228,6 +240,7 @@ REMEMBER: You are Jocelyn. Keep responses conversational and brief. Mention Rese
         self.trial_data = trial_data
         self.call_completed = False
         self.voicemail_detected = False
+        self.status_updated = False  # Track if mark_contacted() was already called
 
         # Parse trial information from metadata
         self.participant_phone = trial_data.get('phone_number', 'Unknown')
@@ -241,6 +254,13 @@ REMEMBER: You are Jocelyn. Keep responses conversational and brief. Mention Rese
 
         # Keep reference to participant for call management
         self.participant: rtc.RemoteParticipant | None = None
+
+        # Initialize Supabase service for database updates
+        try:
+            self.supabase_service = SupabaseService()
+        except Exception as e:
+            logger.warning(f"Failed to initialize Supabase service: {e}")
+            self.supabase_service = None
 
         logger.info(f"ClinicalTrialAgent initialized for participant: {self.participant_name}")
 
@@ -283,6 +303,76 @@ REMEMBER: You are Jocelyn. Keep responses conversational and brief. Mention Rese
         await self.hangup()
 
         return response_text
+
+    @function_tool()
+    async def mark_contacted(self, ctx: RunContext) -> str:
+        """
+        Mark this participant as contacted in the database.
+        Call this IMMEDIATELY after the recipient says something substantial (see DATABASE UPDATES section).
+        This should happen within 10-15 seconds of the call starting.
+        """
+        # Check if already called (idempotency)
+        if self.status_updated:
+            logger.info("Status already updated - skipping duplicate call")
+            return "Status already updated"
+
+        if not self.supabase_service:
+            logger.warning("Supabase service not available - cannot update status")
+            return "Database service not available"
+
+        if not self.participant_phone or self.participant_phone == 'Unknown':
+            logger.warning("Cannot update status - no phone number available")
+            return "No phone number available to update"
+
+        try:
+            result = await self.supabase_service.update_patient_status(
+                phone_number=self.participant_phone,
+                status="Contacted"
+            )
+
+            if result['success']:
+                self.status_updated = True  # Mark as updated to prevent duplicates
+                logger.info(f"✅ Successfully updated status to 'Contacted' for {self.participant_phone}")
+                return "Status updated to Contacted successfully"
+            else:
+                logger.warning(f"⚠️ {result['message']}")
+                return f"Could not update status: {result['message']}"
+
+        except Exception as e:
+            logger.error(f"❌ Failed to update status: {e}")
+            return f"Failed to update status: {str(e)}"
+
+    async def mark_contacted_programmatically(self):
+        """
+        Programmatic version of mark_contacted that doesn't require RunContext.
+        Called automatically by event listener when first substantial response is detected.
+        """
+        if self.status_updated:
+            logger.info("Status already updated - skipping programmatic call")
+            return
+
+        if not self.supabase_service:
+            logger.warning("Supabase service not available - cannot update status")
+            return
+
+        if not self.participant_phone or self.participant_phone == 'Unknown':
+            logger.warning("Cannot update status - no phone number available")
+            return
+
+        try:
+            result = await self.supabase_service.update_patient_status(
+                phone_number=self.participant_phone,
+                status="Contacted"
+            )
+
+            if result['success']:
+                self.status_updated = True
+                logger.info(f"✅ Auto-updated status to 'Contacted' for {self.participant_phone}")
+            else:
+                logger.warning(f"⚠️ Auto-update failed: {result['message']}")
+
+        except Exception as e:
+            logger.error(f"❌ Failed to auto-update status: {e}")
 
 
 async def entrypoint(ctx: JobContext):
@@ -361,7 +451,29 @@ async def entrypoint(ctx: JobContext):
         preemptive_generation=True,
         use_tts_aligned_transcript=True,
     )
-    
+
+    # Add event listener to automatically trigger mark_contacted on first substantial response
+    @session.on("user_input_transcribed")
+    def on_user_input_transcribed(event):
+        """Automatically update status when participant gives first substantial response"""
+        # Only process final transcripts to avoid duplicates
+        if not agent.status_updated and event.is_final:
+            transcript = event.transcript.strip()
+            word_count = len(transcript.split())
+
+            # Substantial response = more than 2 words and not just minimal greetings
+            non_substantial_phrases = ["hello?", "hello", "yes?", "hi", "yeah"]
+            is_substantial = (
+                word_count > 2 and
+                transcript.lower() not in non_substantial_phrases
+            )
+
+            if is_substantial:
+                logger.info(f"🎯 First substantial response detected: '{transcript}' ({word_count} words) - triggering mark_contacted()")
+                asyncio.create_task(agent.mark_contacted_programmatically())
+            else:
+                logger.debug(f"Non-substantial response: '{transcript}' - waiting for more context")
+
     # Start the session first before dialing, to ensure that when the user picks up
     # the agent does not miss anything the user says
     session_started = asyncio.create_task(
