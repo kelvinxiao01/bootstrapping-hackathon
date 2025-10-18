@@ -34,6 +34,9 @@ export const api = {
         if (type === 'CVD') {
           return [`qualified_disease.ilike.%CVD%`, `qualified_disease.ilike.%Cardiovascular%`];
         }
+        if (type === 'Chronic Kidney Disease') {
+          return [`qualified_disease.ilike.%CKD%`, `qualified_disease.ilike.%Chronic Kidney Disease%`];
+        }
         return [`qualified_disease.ilike.%${type}%`];
       });
       
@@ -52,6 +55,9 @@ export const api = {
       const studyTypeConditions = params.studyTypes!.flatMap(type => {
         if (type === 'CVD') {
           return [`qualified_disease.ilike.%CVD%`, `qualified_disease.ilike.%Cardiovascular%`];
+        }
+        if (type === 'Chronic Kidney Disease') {
+          return [`qualified_disease.ilike.%CKD%`, `qualified_disease.ilike.%Chronic Kidney Disease%`];
         }
         return [`qualified_disease.ilike.%${type}%`];
       }).join(',');
