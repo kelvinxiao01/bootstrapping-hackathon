@@ -10,7 +10,7 @@ export interface ListPatientsParams {
   offset?: number;
 }
 
-const TABLE_NAME = 'Crobot Patient Database';
+const TABLE_NAME = 'CrobotMaster';
 
 export const api = {
   async listPatients(params: ListPatientsParams = {}) {

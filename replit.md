@@ -34,6 +34,12 @@ The application features a professional and clean UI suitable for clinical use, 
 
 ## External Dependencies
 - **Supabase**: Used for database (PostgreSQL), real-time subscriptions, and authentication (via API keys).
+  - **Table name**: `CrobotMaster`
+  - **Primary key**: `patient_id` (string)
+  - **Schema**: 54 columns with snake_case names
+  - **RLS Configuration**: Row Level Security must be configured for data access
+    - Disable RLS for testing: `ALTER TABLE "CrobotMaster" DISABLE ROW LEVEL SECURITY;`
+    - Or create read policy: `CREATE POLICY "Allow public read access" ON "CrobotMaster" FOR SELECT TO public USING (true);`
 - **Next.js**: Frontend framework.
 - **React**: UI library.
 - **TypeScript**: Programming language.
