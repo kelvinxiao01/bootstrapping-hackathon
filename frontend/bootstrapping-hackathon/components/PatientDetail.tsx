@@ -11,10 +11,10 @@ interface PatientDetailProps {
 }
 
 const statusConfig: Record<EligibilityStatus, { color: string; bg: string }> = {
-  eligible: { color: 'text-[var(--success)]', bg: 'bg-green-50' },
-  ineligible: { color: 'text-[var(--error)]', bg: 'bg-red-50' },
-  needs_review: { color: 'text-[var(--warning)]', bg: 'bg-amber-50' },
-  pending: { color: 'text-[var(--muted)]', bg: 'bg-gray-50' },
+  eligible: { color: 'text-[var(--success)]', bg: 'bg-green-50/80' },
+  ineligible: { color: 'text-[var(--error)]', bg: 'bg-red-50/80' },
+  needs_review: { color: 'text-[var(--warning)]', bg: 'bg-amber-50/80' },
+  pending: { color: 'text-[var(--muted)]', bg: 'bg-gray-100' },
 };
 
 export default function PatientDetail({ patient, onClose, onUpdate }: PatientDetailProps) {
@@ -42,7 +42,7 @@ export default function PatientDetail({ patient, onClose, onUpdate }: PatientDet
     setIsStartingCall(true);
     await new Promise(resolve => setTimeout(resolve, 800));
     
-    alert(`✓ Call initiated for ${patient.name}\n\nPhone: ${patient.phone}\n\nThe AI calling system will contact this patient shortly.`);
+    alert(`Call initiated for ${patient.name}\n\nPhone: ${patient.phone}\n\nThe AI calling system will contact this patient shortly.`);
     setIsStartingCall(false);
   };
 
@@ -78,7 +78,7 @@ export default function PatientDetail({ patient, onClose, onUpdate }: PatientDet
         <div className="sticky top-0 bg-white/80 backdrop-blur-lg border-b border-[var(--border)] px-8 py-6 z-10">
           <div className="flex items-start justify-between">
             <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[var(--accent)] to-blue-600 flex items-center justify-center text-white font-semibold">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[var(--accent)] to-blue-700 flex items-center justify-center text-white font-semibold">
                 {patient.name.split(' ').map(n => n[0]).join('')}
               </div>
               <div>
@@ -136,7 +136,7 @@ export default function PatientDetail({ patient, onClose, onUpdate }: PatientDet
               {patient.medications.map((med, idx) => (
                 <span
                   key={idx}
-                  className="px-3 py-1.5 rounded-lg bg-blue-50 text-sm text-blue-900 font-medium"
+                  className="px-3 py-1.5 rounded-lg bg-blue-50/80 text-sm text-blue-900 font-medium"
                 >
                   {med}
                 </span>

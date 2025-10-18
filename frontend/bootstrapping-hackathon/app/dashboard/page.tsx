@@ -61,7 +61,7 @@ export default function Dashboard() {
           <div className="flex flex-wrap gap-3">
             <button
               onClick={() => setShowImport(true)}
-              className="inline-flex items-center space-x-2 px-5 py-2.5 bg-[var(--foreground)] text-white rounded-xl font-medium shadow-sm hover-lift smooth-transition"
+              className="inline-flex items-center space-x-2 px-5 py-2.5 bg-[var(--accent)] text-white rounded-xl font-medium shadow-sm hover-lift smooth-transition"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -78,8 +78,10 @@ export default function Dashboard() {
                 <p className="text-xs text-[var(--muted)] uppercase tracking-wider mb-1">Eligible</p>
                 <p className="text-2xl font-semibold text-[var(--success)]">{statusCounts.eligible}</p>
               </div>
-              <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center">
-                <span className="text-lg">✓</span>
+              <div className="w-10 h-10 rounded-lg bg-green-50/80 flex items-center justify-center">
+                <svg className="w-5 h-5 text-[var(--success)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                </svg>
               </div>
             </div>
           </div>
@@ -90,8 +92,10 @@ export default function Dashboard() {
                 <p className="text-xs text-[var(--muted)] uppercase tracking-wider mb-1">Needs Review</p>
                 <p className="text-2xl font-semibold text-[var(--warning)]">{statusCounts.needs_review}</p>
               </div>
-              <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
-                <span className="text-lg">◐</span>
+              <div className="w-10 h-10 rounded-lg bg-amber-50/80 flex items-center justify-center">
+                <svg className="w-5 h-5 text-[var(--warning)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
               </div>
             </div>
           </div>
@@ -102,8 +106,10 @@ export default function Dashboard() {
                 <p className="text-xs text-[var(--muted)] uppercase tracking-wider mb-1">Ineligible</p>
                 <p className="text-2xl font-semibold text-[var(--error)]">{statusCounts.ineligible}</p>
               </div>
-              <div className="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center">
-                <span className="text-lg">✕</span>
+              <div className="w-10 h-10 rounded-lg bg-red-50/80 flex items-center justify-center">
+                <svg className="w-5 h-5 text-[var(--error)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </div>
             </div>
           </div>
@@ -114,8 +120,10 @@ export default function Dashboard() {
                 <p className="text-xs text-[var(--muted)] uppercase tracking-wider mb-1">Pending</p>
                 <p className="text-2xl font-semibold text-[var(--muted)]">{statusCounts.pending}</p>
               </div>
-              <div className="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center">
-                <span className="text-lg">○</span>
+              <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
+                <svg className="w-5 h-5 text-[var(--muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
               </div>
             </div>
           </div>
@@ -141,10 +149,10 @@ export default function Dashboard() {
             className="px-4 py-3 border border-[var(--border)] rounded-xl bg-white text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/20 smooth-transition cursor-pointer"
           >
             <option value="all">All Statuses</option>
-            <option value="eligible">✓ Eligible</option>
-            <option value="needs_review">◐ Needs Review</option>
-            <option value="ineligible">✕ Ineligible</option>
-            <option value="pending">○ Pending</option>
+            <option value="eligible">Eligible</option>
+            <option value="needs_review">Needs Review</option>
+            <option value="ineligible">Ineligible</option>
+            <option value="pending">Pending</option>
           </select>
         </div>
 

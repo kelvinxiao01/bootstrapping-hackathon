@@ -165,7 +165,7 @@ Jane Smith,48,Type 2 Diabetes,jane@email.com,(555) 222-3333,Insulin;Metformin`;
             }`}
           >
             <div className="space-y-4">
-              <div className="w-16 h-16 mx-auto rounded-xl bg-gradient-to-br from-[var(--accent)] to-blue-600 flex items-center justify-center smooth-transition hover:scale-105">
+              <div className="w-16 h-16 mx-auto rounded-xl bg-gradient-to-br from-[var(--accent)] to-blue-700 flex items-center justify-center smooth-transition hover:scale-105">
                 <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                 </svg>
@@ -187,7 +187,7 @@ Jane Smith,48,Type 2 Diabetes,jane@email.com,(555) 222-3333,Insulin;Metformin`;
               />
               <label
                 htmlFor="csv-upload"
-                className="inline-block px-6 py-3 bg-[var(--foreground)] text-white rounded-xl cursor-pointer hover-lift smooth-transition font-medium"
+                className="inline-block px-6 py-3 bg-[var(--accent)] text-white rounded-xl cursor-pointer hover-lift smooth-transition font-medium"
               >
                 Choose File
               </label>
@@ -271,7 +271,7 @@ Jane Smith,48,Type 2 Diabetes,jane@email.com,(555) 222-3333,Insulin;Metformin`;
             <button
               onClick={handleImport}
               disabled={preview.length === 0}
-              className="flex-1 px-6 py-3 bg-[var(--foreground)] text-white rounded-xl font-medium shadow-sm hover-lift smooth-transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-6 py-3 bg-[var(--accent)] text-white rounded-xl font-medium shadow-sm hover-lift smooth-transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Import {preview.length > 0 && `(${preview.length})`}
             </button>
