@@ -1,30 +1,81 @@
-import { Patient, EligibilityResult } from '@/types/patient';
+import { supabase } from './supabase';
+import { calculateLocalEligibility } from './eligibilityScoring';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+export interface ListPatientsParams {
+  filters?: Record<string, any>;
+  sort?: { column: string; ascending: boolean };
+  limit?: number;
+  offset?: number;
+}
 
 export const api = {
-  async getPatients(): Promise<Patient[]> {
-    const response = await fetch(`${API_BASE_URL}/patients`);
-    if (!response.ok) throw new Error('Failed to fetch patients');
-    return response.json();
+  async listPatients(params: ListPatientsParams = {}) {
+    let query = supabase.from('patients').select('*');
+
+    if (params.filters) {
+      Object.entries(params.filters).forEach(([key, value]) => {
+        if (value !== null && value !== undefined && value !== '') {
+          query = query.eq(key, value);
+        }
+      });
+    }
+
+    if (params.sort) {
+      query = query.order(params.sort.column, { ascending: params.sort.ascending });
+    }
+
+    if (params.limit) {
+      query = query.limit(params.limit);
+    }
+
+    if (params.offset) {
+      query = query.range(params.offset, params.offset + (params.limit || 100) - 1);
+    }
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+    return data || [];
   },
 
-  async getPatient(id: string): Promise<Patient> {
-    const response = await fetch(`${API_BASE_URL}/patients/${id}`);
-    if (!response.ok) throw new Error('Failed to fetch patient');
-    return response.json();
+  async getPatient(id: string) {
+    const { data, error } = await supabase
+      .from('patients')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+    return data;
   },
 
-  async calculateEligibility(id: string): Promise<EligibilityResult> {
-    const response = await fetch(`${API_BASE_URL}/eligibility/${id}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-    });
-    if (!response.ok) throw new Error('Failed to calculate eligibility');
-    return response.json();
+  async updatePatient(id: string, updates: Record<string, any>) {
+    const { data, error } = await supabase
+      .from('patients')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  async rescorePatient(id: string) {
+    const patient = await this.getPatient(id);
+    const eligibility = calculateLocalEligibility(patient);
+
+    const updates = {
+      top_category: eligibility.topCategory,
+      eligibility_score: eligibility.score,
+      eligibility_label: eligibility.label,
+    };
+
+    return await this.updatePatient(id, updates);
   },
 
   async startCall(patientId: string): Promise<{ call_id: string; status: string }> {
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
     const response = await fetch(`${API_BASE_URL}/calls/start`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -34,23 +85,22 @@ export const api = {
     return response.json();
   },
 
-  async updatePatient(id: string, data: Partial<Patient>): Promise<Patient> {
-    const response = await fetch(`${API_BASE_URL}/patients/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    if (!response.ok) throw new Error('Failed to update patient');
-    return response.json();
+  subscribeToPatients(callback: (payload: any) => void) {
+    return supabase
+      .channel('patients-changes')
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'patients' }, callback)
+      .subscribe();
   },
 
-  async importPatients(patients: Partial<Patient>[]): Promise<Patient[]> {
-    const response = await fetch(`${API_BASE_URL}/patients/import`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ patients }),
-    });
-    if (!response.ok) throw new Error('Failed to import patients');
-    return response.json();
+  async getTableColumns() {
+    const { data, error } = await supabase
+      .from('patients')
+      .select('*')
+      .limit(1);
+
+    if (error) throw error;
+    if (!data || data.length === 0) return [];
+
+    return Object.keys(data[0]);
   },
 };
