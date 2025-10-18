@@ -53,22 +53,51 @@ Ready-to-use API service functions for:
 
 ## Recent Changes
 
-**October 18, 2025** - Enterprise UI Redesign (Final)
-- Complete professional redesign for enterprise healthcare use
-- **Removed ALL emojis** - replaced with professional SVG icons throughout
-- **Removed "Powered by AI" badge** and all informal elements
-- Updated color palette for medical/clinical professionalism:
-  - Primary: #2563EB (medical blue)
-  - Success: #16A34A, Error: #DC2626, Warning: #D97706
-  - Background gradient: #F9FAFB → #EEF1F6 (subtle depth)
-  - Typography: Inter font family
-- Landing page: Clean SVG icons (clipboard, phone, chart bars)
-- Dashboard: Professional status cards with SVG icons (checkmark, warning triangle, X, clock)
-- Patient table: Text-only status dropdowns, SVG document icon for empty state
-- All action buttons use primary blue color scheme
-- Status badges with semi-transparent backgrounds
-- Smooth hover transitions and 12px border radius throughout
-- Architect-approved as production-ready for enterprise deployment
+**October 18, 2025** - Comprehensive Dashboard Redesign & Clinical Data Integration
+- **Expanded Patient Data Model** with 50+ comprehensive clinical fields:
+  - Demographics: DOB, age, sex, height, weight, BMI
+  - Vitals: Systolic/Diastolic BP
+  - Lifestyle: Smoking status, pack years
+  - Diabetes: Diagnosis, type, A1C, eGFR, CKD stage
+  - Cardiovascular: MI history, stroke/TIA, PAD, heart failure, LVEF, NYHA class
+  - Medications: Statin, anticoagulant, SGLT2, GLP-1, insulin, full medication list
+  - Biomarkers: NT-proBNP, troponin, LDL/HDL cholesterol, triglycerides
+  - Oncology: Active cancer, primary site, stage, treatment status
+  - Dermatology: Eczema history, IGA score
+  - Women's Health: Pregnancy status
+- **AI Trial Matching System** with 9 fixed categories:
+  - Diabetes Trials, Cardiovascular Trials, Chronic Kidney Disease Trials
+  - Eczema/Dermatology Trials, Oncology Trials, Women's Health Trials
+  - Metabolic/Obesity Trials, Neurology Trials, General Preventive Health Trials
+- **Updated Patient Table** with new columns:
+  - Qualified Condition, Top Matched Trial Category
+  - Eligibility (score + label: Eligible/Ineligible/Needs Info)
+  - Current Status (Pending/Contacted/Interested/Onboard)
+  - Last Contacted date
+  - Centered action icons: View details, Start call, Re-score eligibility
+- **Patient Detail Page** (new route: /patients/[id]):
+  - Comprehensive overview with demographics and trial matching
+  - Eligibility summary with AI category, score (0-100), and key criteria
+  - Complete clinical data table with clean field labels
+  - Action panel: Start Call, Update Status, Request Follow-up
+  - Two-column responsive layout
+- **OpenAI Integration Setup**:
+  - Replit AI Integrations installed (no API key required)
+  - Python OpenAI package configured
+  - Ready for backend AI eligibility scoring
+- **Updated API Endpoints**:
+  - `POST /eligibility/:id` - Calculate AI eligibility score
+  - `POST /calls/start` - Initiate patient calls
+  - `PATCH /patients/:id` - Update patient data
+- **Mock Data**: 6 patients with realistic clinical profiles across different conditions
+- **Removed animations**: Dashboard and table now load instantly for professional UX
+- Architect-reviewed and approved for enterprise deployment
+
+**October 18, 2025** - Enterprise UI Polish
+- Removed all emojis, replaced with professional SVG icons
+- Removed "Powered by AI" badge and informal elements
+- Updated color palette for medical/clinical professionalism
+- Enhanced homepage with comprehensive product information
 
 **October 18, 2025** - CRO Recruiter Application Built
 - Created complete patient management dashboard
