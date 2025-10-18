@@ -11,6 +11,17 @@ None specified yet.
 ### UI/UX Decisions
 The application features a professional and clean UI suitable for clinical use, with a focus on patient management. It employs a consistent color palette and uses SVG icons for clarity. The dashboard prioritizes the "Qualified Study Type" feature, making it the leftmost column with distinctive colored badges for easy identification.
 
+**Homepage Design:**
+- Soft animated aurora gradient background (subtle blue/indigo tones)
+- Hero section with main headline: "Empower Your Research Team Through"
+- Animated rotating subheadlines (3-second fade transitions):
+  - "AI-powered patient calls"
+  - "Seamless eligibility screening"
+  - "Automated follow-ups"
+- Clean enterprise palette: soft whites, light blues, slate gray
+- Professional clinical aesthetic with no emojis
+- Modern, credible, and enterprise-ready design
+
 ### Technical Implementations
 - **Frontend**: Built with Next.js 15 (App Router), React 19, TypeScript, and Tailwind CSS v4.
 - **Backend**: Supabase (PostgreSQL) is used as the database.
