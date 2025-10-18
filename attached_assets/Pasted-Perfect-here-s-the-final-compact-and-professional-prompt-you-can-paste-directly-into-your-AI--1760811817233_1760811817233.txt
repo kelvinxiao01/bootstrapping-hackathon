@@ -1,0 +1,120 @@
+Perfect — here’s the **final, compact and professional prompt** you can paste directly into your AI/frontend builder.
+This version captures the **full user flow**, **clean field names**, and includes your instruction that **eligibility results should be AI-matched to a fixed but broad set of trial categories** (not just four narrow ones).
+
+---
+
+## Prompt: CRO Recruiter Dashboard — Full User Flow with Generic Trial Matching
+
+You are building the **Next.js frontend** for **CRO Recruiter**, a professional platform for clinical trial recruitment and patient management.
+The **Python backend** handles data, AI scoring, and patient calling.
+Your task: design a **clean, medical-grade dashboard** that connects to the backend and supports AI-assisted eligibility matching.
+
+---
+
+### 1. User Flow
+
+#### **A. Main Dashboard (Overview)**
+
+* Displays a table of patients with:
+
+  * **Name / Contact Info**
+  * **Qualified Condition** (e.g., Diabetes, Eczema, Cardiovascular)
+  * **Current Status** (Pending, Contacted, Interested, Onboard)
+  * **Last Contacted Date**
+  * **Top Matched Trial Category** (AI-generated)
+  * **Eligibility Score**
+  * **Actions:**
+
+    * **View Details** (open detail page)
+    * **Start Call** (connected to backend call API)
+    * **Re-score Eligibility** (refresh AI result)
+* Filtering: by condition, eligibility label, or status.
+* Sorting: by score or last contacted.
+* Center all icons (phone, refresh, view).
+* No emojis, no “Powered by AI.”
+
+---
+
+#### **B. Patient Detail Page**
+
+* **Overview:** name, contact, qualified condition, top matched trial, and AI score.
+* **Eligibility Summary:**
+
+  * AI-generated category (e.g., “Diabetes Trials – Eligible”) (OPENAI API)
+  * Score (0–100)
+  * Label (Eligible / Ineligible / Needs Info)
+  * Key reasons (criteria met or missing)
+* **Clinical Data Table:** show all fields with clean readable labels (see below).
+* **Actions:** Start Call → backend call endpoint; Update Status → backend patch; Request Follow-up → placeholder.
+* Two-column layout, clear spacing, centered icons, and consistent design.
+
+---
+
+### 2. AI Eligibility Categories
+
+Eligibility results should only come from a **fixed, generic list of common clinical trial categories**, not dynamically generated.
+The backend’s AI chooses the **best fit** from this list by reading the patient’s metrics.
+
+**Fixed Trial Categories:**
+
+1. **Diabetes Trials** – Based on A1C, eGFR, and diabetes diagnosis/type.
+2. **Cardiovascular Trials** – Based on MI, Stroke/TIA, PAD, Heart Failure, or related history.
+3. **Chronic Kidney Disease Trials** – Based on CKD stage and eGFR values.
+4. **Eczema / Dermatology Trials** – Based on diagnosis or notes referencing eczema or skin conditions.
+5. **Oncology Trials** – Based on active cancer, primary site, stage, and treatment status.
+6. **Women’s Health Trials** – Based on pregnancy status or female-specific conditions.
+7. **Metabolic / Obesity Trials** – Based on BMI and metabolic indicators.
+8. **Neurology Trials** – Based on stroke history or neurovascular events.
+9. **General Preventive Health Trials** – Patients not matching above but suitable for general screening studies.
+
+Backend returns JSON:
+
+```json
+{
+  "topCategory": "Cardiovascular Trials",
+  "score": 82,
+  "label": "Eligible",
+  "reasons": ["History of MI", "Stable EF and controlled BP"]
+}
+```
+
+Display this info clearly in the eligibility summary.
+
+---
+
+### 3. Clinical Data (Clean Labels)
+
+All headers must use human-readable names (no underscores):
+
+Date of Birth | Age | Sex at Birth | Height (cm) | Weight (kg) | BMI | Systolic BP | Diastolic BP | Smoking Status | Pack Years | Diabetes Diagnosis | Diabetes Type | Recent A1C (%) | A1C Date | CKD Stage | Recent eGFR (mL/min/1.73m²) | eGFR Date | ALT (U/L) | AST (U/L) | Bilirubin (mg/dL) | MI History | Stroke/TIA History | PAD History | Heart Failure History | LVEF (%) | LVEF Date | NYHA Class | On Statin | On Anticoagulant | On SGLT2 | On GLP-1 | On Insulin | NT-proBNP (pg/mL) | Troponin (ng/L) | Active Cancer | Cancer Primary Site | Cancer Stage | Treatment Status | Last Treatment Type | Last Treatment Date | ECOG Status | Measurable Disease (RECIST) | ANC (×10⁹/L) | Hemoglobin (g/dL) | Platelets (×10⁹/L) | Recent QTc (ms) | Pregnancy Status | Qualified Condition | Last Contacted | Current Status
+
+---
+
+### 4. Backend Endpoints (Connect Frontend)
+
+* `GET /patients` → patient list
+* `GET /patients/:id` → details
+* `POST /eligibility/:id` → AI eligibility result (returns topCategory, score, label, reasons)
+* `POST /calls/start` → initiate call
+* `PATCH /patients/:id` → update status
+
+Frontend should display live call status if backend streams updates.
+When “Re-score” is clicked, refresh eligibility and update the table instantly.
+
+---
+
+### 5. Visual Rules
+
+* Maintain the same gradient background and color palette.
+* Center all icons in buttons and headers.
+* No underscores or abbreviations in labels.
+* No emojis, no “Powered by AI.”
+* Maintain clean hierarchy and whitespace for readability.
+
+---
+
+### Deliverable
+
+Update the CRO Recruiter dashboard and patient detail pages to use this **full flow** and **generic trial matching logic**.
+Keep backend connectivity intact, ensure icons and labels are professional, and display AI eligibility results from the **fixed trial category list** above.
+The result should feel **streamlined, clinical, and enterprise-ready** for research professionals.
