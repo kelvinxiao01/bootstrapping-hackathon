@@ -125,39 +125,57 @@ John Doe,52,Hypertension,john@email.com,(555) 111-2222,Lisinopril;Metformin
 Jane Smith,48,Type 2 Diabetes,jane@email.com,(555) 222-3333,Insulin;Metformin`;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Import Patient Data
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-2xl"
-          >
-            ✕
-          </button>
+    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-4 fade-in">
+      <div
+        className="absolute inset-0"
+        onClick={onClose}
+      />
+      
+      <div className="relative bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl scale-in">
+        <div className="sticky top-0 bg-white/80 backdrop-blur-lg border-b border-[var(--border)] px-8 py-6 z-10 rounded-t-2xl">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold text-[var(--foreground)] tracking-tight">
+                Import Patients
+              </h2>
+              <p className="text-sm text-[var(--muted)] mt-1">
+                Upload a CSV file to add patients to the database
+              </p>
+            </div>
+            <button
+              onClick={onClose}
+              className="w-10 h-10 rounded-lg hover:bg-gray-100 flex items-center justify-center smooth-transition text-[var(--muted)] hover:text-[var(--foreground)]"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
         </div>
 
-        <div className="p-6 space-y-6">
+        <div className="px-8 py-6 space-y-6">
           <div
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+            className={`border-2 border-dashed rounded-2xl p-12 text-center smooth-transition ${
               isDragging
-                ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20'
-                : 'border-gray-300 dark:border-gray-600'
+                ? 'border-[var(--accent)] bg-blue-50/50'
+                : 'border-gray-200 hover:border-[var(--accent)]/50 hover:bg-gray-50/50'
             }`}
           >
             <div className="space-y-4">
-              <div className="text-4xl">📄</div>
+              <div className="w-16 h-16 mx-auto rounded-xl bg-gradient-to-br from-[var(--accent)] to-blue-600 flex items-center justify-center smooth-transition hover:scale-105">
+                <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+              </div>
               <div>
-                <p className="text-gray-700 dark:text-gray-300 font-medium mb-2">
-                  Drop CSV file here or click to upload
+                <p className="text-[var(--foreground)] font-medium mb-2">
+                  Drop your CSV file here
                 </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  CSV should include: name, age, diagnosis, email, phone, medications
+                <p className="text-sm text-[var(--muted)]">
+                  or click to browse from your computer
                 </p>
               </div>
               <input
@@ -169,59 +187,64 @@ Jane Smith,48,Type 2 Diabetes,jane@email.com,(555) 222-3333,Insulin;Metformin`;
               />
               <label
                 htmlFor="csv-upload"
-                className="inline-block bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg cursor-pointer transition-colors"
+                className="inline-block px-6 py-3 bg-[var(--foreground)] text-white rounded-xl cursor-pointer hover-lift smooth-transition font-medium"
               >
                 Choose File
               </label>
             </div>
           </div>
 
-          <div>
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+          <div className="p-6 rounded-xl bg-gray-50">
+            <p className="text-xs text-[var(--muted)] uppercase tracking-wider mb-3">
               Sample CSV Format
-            </h3>
-            <pre className="bg-gray-100 dark:bg-gray-900 p-3 rounded text-xs overflow-x-auto text-gray-800 dark:text-gray-200">
+            </p>
+            <pre className="bg-white p-4 rounded-lg text-xs overflow-x-auto text-[var(--foreground)] font-mono border border-[var(--border)]">
               {sampleCsv}
             </pre>
           </div>
 
           {preview.length > 0 && (
-            <div>
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-3">
-                Preview ({preview.length} patients)
-              </h3>
-              <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+            <div className="space-y-3 scale-in">
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-[var(--muted)] uppercase tracking-wider">
+                  Preview
+                </p>
+                <span className="px-3 py-1 rounded-lg bg-[var(--success)]/10 text-[var(--success)] text-xs font-semibold">
+                  {preview.length} {preview.length === 1 ? 'patient' : 'patients'}
+                </span>
+              </div>
+              <div className="border border-[var(--border)] rounded-xl overflow-hidden">
                 <div className="overflow-x-auto max-h-64">
-                  <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
-                    <thead className="bg-gray-50 dark:bg-gray-900">
-                      <tr>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
+                  <table className="min-w-full">
+                    <thead>
+                      <tr className="border-b border-[var(--border)] bg-gray-50">
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
                           Name
                         </th>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
                           Age
                         </th>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
                           Diagnosis
                         </th>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
                           Email
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                    <tbody className="bg-white">
                       {preview.slice(0, 5).map((patient, idx) => (
-                        <tr key={idx}>
-                          <td className="px-4 py-2 text-gray-900 dark:text-white">
+                        <tr key={idx} className="border-b border-[var(--border)] last:border-0">
+                          <td className="px-4 py-3 text-sm text-[var(--foreground)]">
                             {patient.name}
                           </td>
-                          <td className="px-4 py-2 text-gray-900 dark:text-white">
+                          <td className="px-4 py-3 text-sm text-[var(--foreground)]">
                             {patient.age}
                           </td>
-                          <td className="px-4 py-2 text-gray-900 dark:text-white">
+                          <td className="px-4 py-3 text-sm text-[var(--foreground)]">
                             {patient.diagnosis}
                           </td>
-                          <td className="px-4 py-2 text-gray-900 dark:text-white">
+                          <td className="px-4 py-3 text-sm text-[var(--muted)]">
                             {patient.email}
                           </td>
                         </tr>
@@ -230,20 +253,25 @@ Jane Smith,48,Type 2 Diabetes,jane@email.com,(555) 222-3333,Insulin;Metformin`;
                   </table>
                 </div>
               </div>
+              {preview.length > 5 && (
+                <p className="text-xs text-[var(--muted)] text-center">
+                  Showing 5 of {preview.length} patients
+                </p>
+              )}
             </div>
           )}
 
-          <div className="flex gap-3">
+          <div className="flex gap-3 pt-4">
             <button
               onClick={onClose}
-              className="flex-1 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium py-2 px-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              className="flex-1 px-6 py-3 border border-[var(--border)] text-[var(--foreground)] rounded-xl font-medium hover:bg-gray-50 smooth-transition"
             >
               Cancel
             </button>
             <button
               onClick={handleImport}
               disabled={preview.length === 0}
-              className="flex-1 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+              className="flex-1 px-6 py-3 bg-[var(--foreground)] text-white rounded-xl font-medium shadow-sm hover-lift smooth-transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Import {preview.length > 0 && `(${preview.length})`}
             </button>

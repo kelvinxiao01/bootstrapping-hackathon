@@ -1,0 +1,64 @@
+🎨 Prompt: Make the UI Minimalist and Beautiful
+You are redesigning the frontend UI for a project called CRO Recruiter, built in Next.js.
+The purpose of the app is to help call agents and coordinators manage patient recruitment for clinical trials.
+The backend (Python) handles all the logic — your focus is purely frontend design and experience.
+🧭 Design Goals
+Make the interface clean, minimal, and modern — inspired by tools like Linear, Notion, and Airtable.
+Prioritize readability, whitespace, and calm colors.
+The UI should feel professional, medical-grade, but approachable.
+Use subtle animations and microinteractions (hover states, transitions) to make the experience feel alive.
+Avoid clutter, boxes, or harsh borders. Use soft shadows and smooth edges instead.
+🧱 Layout Overview
+Navigation Bar (Top)
+Thin, translucent header with the app name “CRO Recruiter”.
+Right corner: buttons for “Import Patients” and “Filter”.
+A soft accent color (light teal or medical blue) for action buttons.
+Dashboard (Main Section)
+Display patients in a clean table or grid, similar to Notion or Airtable.
+Each row = patient; each column = key info (Name, Age, Diagnosis, Score, Status).
+Use subtle color chips for status:
+Green: Eligible
+Red: Ineligible
+Amber: Needs Info
+Rounded corners, light divider lines, no full boxes.
+Side Panel (Patient Detail View)
+Slide-in panel from the right when clicking a patient.
+Large readable text, soft spacing, icons for criteria.
+Buttons: “Recalculate Eligibility,” “Start Call,” and “Mark Status.”
+Keep consistent accent color for all CTAs.
+Import Modal
+Clean drag-and-drop area with dotted border.
+Upload icon + short instruction text (“Drop your CSV here or click to browse”).
+Minimal success/fail indicators (checkmark or subtle red X).
+🎨 Style Guide
+Font: Inter, Manrope, or Plus Jakarta Sans (whichever looks best).
+Colors:
+Background: #F9FAFB (off-white)
+Text: #111827 (dark gray)
+Subtext: #6B7280 (muted gray)
+Accent: #0EA5E9 (light medical blue)
+Success: #10B981 (green)
+Error: #EF4444 (soft red)
+Warning: #F59E0B (amber)
+Borders: 1px solid rgba(0,0,0,0.05)
+Shadows: Soft, layered; no harsh contrast.
+Radius: 12–16px on modals and panels.
+Buttons: Rounded, filled accent color, hover → subtle lift.
+💡 Interactions
+Hovering over rows or buttons gives a gentle lift or glow.
+Table cells animate slightly when updated (like Google Sheets).
+Smooth transitions between pages or panels.
+Loading states use skeleton placeholders (light gray shimmer).
+🪄 What to Generate
+Full redesigned layout in Next.js pages and components.
+Include clean CSS or Tailwind styling for the theme above.
+Replace the old layout with a minimalist design that fits any screen.
+Keep everything ready to connect to backend APIs (no breaking structure).
+🧘 Vibe Summary
+Think:
+“Notion meets Clinical Research.”
+Calm, data-driven, yet human.
+Whitespace is luxury — use it.
+End of prompt.
+Build the frontend following this exact tone and design direction.
+Every element should feel purposeful, light, and harmonious.

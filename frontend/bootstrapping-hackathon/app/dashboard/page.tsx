@@ -35,48 +35,116 @@ export default function Dashboard() {
     setShowImport(false);
   };
 
+  const statusCounts = {
+    eligible: patients.filter(p => p.status === 'eligible').length,
+    needs_review: patients.filter(p => p.status === 'needs_review').length,
+    ineligible: patients.filter(p => p.status === 'ineligible').length,
+    pending: patients.filter(p => p.status === 'pending').length,
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-[var(--background)]">
       <Header />
       
-      <main className="max-w-7xl mx-auto p-4 md:p-6 space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              Patient Dashboard
+      <main className="max-w-7xl mx-auto px-6 pt-24 pb-12 space-y-8 fade-in">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+          <div className="space-y-1">
+            <h1 className="text-3xl font-bold text-[var(--foreground)] tracking-tight">
+              Patients
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
-              {filteredPatients.length} patients {filterStatus !== 'all' && `(${filterStatus})`}
+            <p className="text-sm text-[var(--muted)]">
+              {filteredPatients.length} {filteredPatients.length === 1 ? 'patient' : 'patients'}
+              {filterStatus !== 'all' && ` · ${filterStatus.replace('_', ' ')}`}
             </p>
           </div>
 
-          <button
-            onClick={() => setShowImport(true)}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
-          >
-            Import CSV
-          </button>
+          <div className="flex flex-wrap gap-3">
+            <button
+              onClick={() => setShowImport(true)}
+              className="inline-flex items-center space-x-2 px-5 py-2.5 bg-[var(--foreground)] text-white rounded-xl font-medium shadow-sm hover-lift smooth-transition"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+              <span>Import</span>
+            </button>
+          </div>
         </div>
 
-        <div className="flex flex-col md:flex-row gap-4">
-          <input
-            type="text"
-            placeholder="Search patients by name or diagnosis..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500"
-          />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="p-4 rounded-xl bg-white border border-[var(--border)] smooth-transition hover-lift">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-[var(--muted)] uppercase tracking-wider mb-1">Eligible</p>
+                <p className="text-2xl font-semibold text-[var(--success)]">{statusCounts.eligible}</p>
+              </div>
+              <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center">
+                <span className="text-lg">✓</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-4 rounded-xl bg-white border border-[var(--border)] smooth-transition hover-lift">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-[var(--muted)] uppercase tracking-wider mb-1">Needs Review</p>
+                <p className="text-2xl font-semibold text-[var(--warning)]">{statusCounts.needs_review}</p>
+              </div>
+              <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
+                <span className="text-lg">◐</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-4 rounded-xl bg-white border border-[var(--border)] smooth-transition hover-lift">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-[var(--muted)] uppercase tracking-wider mb-1">Ineligible</p>
+                <p className="text-2xl font-semibold text-[var(--error)]">{statusCounts.ineligible}</p>
+              </div>
+              <div className="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center">
+                <span className="text-lg">✕</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-4 rounded-xl bg-white border border-[var(--border)] smooth-transition hover-lift">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-[var(--muted)] uppercase tracking-wider mb-1">Pending</p>
+                <p className="text-2xl font-semibold text-[var(--muted)]">{statusCounts.pending}</p>
+              </div>
+              <div className="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center">
+                <span className="text-lg">○</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col md:flex-row gap-3">
+          <div className="flex-1 relative">
+            <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search patients..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-12 pr-4 py-3 border border-[var(--border)] rounded-xl bg-white text-[var(--foreground)] placeholder-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/20 smooth-transition"
+            />
+          </div>
           
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value as EligibilityStatus | 'all')}
-            className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+            className="px-4 py-3 border border-[var(--border)] rounded-xl bg-white text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/20 smooth-transition cursor-pointer"
           >
             <option value="all">All Statuses</option>
-            <option value="eligible">Eligible</option>
-            <option value="needs_review">Needs Review</option>
-            <option value="ineligible">Ineligible</option>
-            <option value="pending">Pending</option>
+            <option value="eligible">✓ Eligible</option>
+            <option value="needs_review">◐ Needs Review</option>
+            <option value="ineligible">✕ Ineligible</option>
+            <option value="pending">○ Pending</option>
           </select>
         </div>
 

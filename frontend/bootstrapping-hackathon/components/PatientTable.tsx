@@ -8,17 +8,17 @@ interface PatientTableProps {
   onUpdatePatient: (patient: Patient) => void;
 }
 
-const statusColors: Record<EligibilityStatus, string> = {
-  eligible: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-  ineligible: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-  needs_review: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-  pending: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200',
+const statusConfig: Record<EligibilityStatus, { color: string; bg: string; label: string }> = {
+  eligible: { color: 'text-[var(--success)]', bg: 'bg-green-50', label: 'Eligible' },
+  ineligible: { color: 'text-[var(--error)]', bg: 'bg-red-50', label: 'Ineligible' },
+  needs_review: { color: 'text-[var(--warning)]', bg: 'bg-amber-50', label: 'Needs Review' },
+  pending: { color: 'text-[var(--muted)]', bg: 'bg-gray-50', label: 'Pending' },
 };
 
 const scoreColor = (score: number): string => {
-  if (score >= 80) return 'text-green-600 dark:text-green-400 font-bold';
-  if (score >= 60) return 'text-yellow-600 dark:text-yellow-400 font-semibold';
-  return 'text-red-600 dark:text-red-400';
+  if (score >= 80) return 'text-[var(--success)] font-semibold';
+  if (score >= 60) return 'text-[var(--warning)] font-medium';
+  return 'text-[var(--error)]';
 };
 
 export default function PatientTable({ patients, onSelectPatient, onUpdatePatient }: PatientTableProps) {
@@ -27,83 +27,93 @@ export default function PatientTable({ patients, onSelectPatient, onUpdatePatien
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+    <div className="bg-white rounded-2xl border border-[var(--border)] overflow-hidden shadow-sm">
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-          <thead className="bg-gray-50 dark:bg-gray-900">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Name
+        <table className="min-w-full">
+          <thead>
+            <tr className="border-b border-[var(--border)]">
+              <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
+                Patient
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
                 Age
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
                 Diagnosis
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
                 Medications
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
                 Score
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
                 Status
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Actions
+              <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
+                
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-            {patients.map((patient) => (
+          <tbody>
+            {patients.map((patient, index) => (
               <tr
                 key={patient.id}
-                className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                className="border-b border-[var(--border)] last:border-0 smooth-transition hover:bg-gray-50/50 scale-in"
+                style={{ animationDelay: `${index * 0.05}s` }}
               >
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900 dark:text-white">
-                    {patient.name}
-                  </div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">
-                    {patient.email}
+                <td className="px-6 py-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--accent)] to-blue-600 flex items-center justify-center text-white font-semibold text-sm">
+                      {patient.name.split(' ').map(n => n[0]).join('')}
+                    </div>
+                    <div>
+                      <div className="font-medium text-[var(--foreground)]">
+                        {patient.name}
+                      </div>
+                      <div className="text-sm text-[var(--muted)]">
+                        {patient.email}
+                      </div>
+                    </div>
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                <td className="px-6 py-4 text-sm text-[var(--foreground)]">
                   {patient.age}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900 dark:text-white">{patient.diagnosis}</div>
+                <td className="px-6 py-4">
+                  <div className="text-sm text-[var(--foreground)]">{patient.diagnosis}</div>
                 </td>
                 <td className="px-6 py-4">
-                  <div className="text-sm text-gray-900 dark:text-white">
+                  <div className="text-sm text-[var(--muted)]">
                     {patient.medications.slice(0, 2).join(', ')}
-                    {patient.medications.length > 2 && ` +${patient.medications.length - 2}`}
+                    {patient.medications.length > 2 && (
+                      <span className="text-[var(--accent)]"> +{patient.medications.length - 2}</span>
+                    )}
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`text-sm ${scoreColor(patient.score)}`}>
-                    {patient.score > 0 ? patient.score : '-'}
+                <td className="px-6 py-4">
+                  <span className={`text-sm font-mono ${scoreColor(patient.score)}`}>
+                    {patient.score > 0 ? patient.score : '—'}
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-6 py-4">
                   <select
                     value={patient.status}
                     onChange={(e) => handleStatusChange(patient, e.target.value as EligibilityStatus)}
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${statusColors[patient.status]} border-0 cursor-pointer`}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium ${statusConfig[patient.status].color} ${statusConfig[patient.status].bg} border-0 cursor-pointer smooth-transition hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/20`}
                   >
-                    <option value="eligible">Eligible</option>
-                    <option value="needs_review">Needs Review</option>
-                    <option value="ineligible">Ineligible</option>
-                    <option value="pending">Pending</option>
+                    <option value="eligible">✓ Eligible</option>
+                    <option value="needs_review">◐ Needs Review</option>
+                    <option value="ineligible">✕ Ineligible</option>
+                    <option value="pending">○ Pending</option>
                   </select>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                <td className="px-6 py-4">
                   <button
                     onClick={() => onSelectPatient(patient)}
-                    className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300 font-medium"
+                    className="text-sm font-medium text-[var(--accent)] hover:text-blue-700 smooth-transition"
                   >
-                    View Details
+                    View
                   </button>
                 </td>
               </tr>
@@ -113,8 +123,9 @@ export default function PatientTable({ patients, onSelectPatient, onUpdatePatien
       </div>
 
       {patients.length === 0 && (
-        <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-          No patients found. Try adjusting your filters or import patient data.
+        <div className="text-center py-16 text-[var(--muted)]">
+          <div className="text-4xl mb-4">📋</div>
+          <p className="text-sm">No patients found. Try adjusting your filters.</p>
         </div>
       )}
     </div>
