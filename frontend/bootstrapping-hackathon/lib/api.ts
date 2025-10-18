@@ -5,6 +5,7 @@ export interface ListPatientsParams {
   filters?: Record<string, any>;
   studyTypes?: string[];
   searchQuery?: string;
+  contactStatus?: string;
   sort?: { column: string; ascending: boolean };
   limit?: number;
   offset?: number;
@@ -16,21 +17,28 @@ export const api = {
   async listPatients(params: ListPatientsParams = {}) {
     let query = supabase.from(TABLE_NAME).select('*', { count: 'exact' });
 
-    if (params.studyTypes && params.studyTypes.length > 0) {
-      params.studyTypes.forEach(type => {
-        if (type === 'CVD') {
-          query = query.or(`qualified_disease.ilike.%CVD%,qualified_disease.ilike.%Cardiovascular%`);
-        } else {
-          query = query.ilike('qualified_disease', `%${type}%`);
-        }
-      });
-    }
-
     if (params.searchQuery && params.searchQuery.trim()) {
       const search = params.searchQuery.trim();
+      const normalizedSearch = search.replace(/[\s\-]/g, '');
+      
       query = query.or(
-        `full_name.ilike.%${search}%,qualified_disease.ilike.%${search}%`
+        `full_name.ilike.%${search}%,phone.ilike.%${normalizedSearch}%,email.ilike.%${search}%`
       );
+    }
+
+    if (params.contactStatus && params.contactStatus !== 'All') {
+      query = query.eq('status', params.contactStatus);
+    }
+
+    if (params.studyTypes && params.studyTypes.length > 0) {
+      const studyTypeConditions = params.studyTypes.map(type => {
+        if (type === 'CVD') {
+          return `qualified_disease.ilike.%CVD%,qualified_disease.ilike.%Cardiovascular%`;
+        }
+        return `qualified_disease.ilike.%${type}%`;
+      }).join(',');
+      
+      query = query.or(studyTypeConditions);
     }
 
     if (params.filters) {

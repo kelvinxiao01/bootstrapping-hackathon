@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Patient } from '@/types/patient';
 import PatientTable from '@/components/PatientTable';
@@ -15,7 +15,9 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [showImport, setShowImport] = useState(false);
   const [selectedStudyTypes, setSelectedStudyTypes] = useState<string[]>([]);
+  const [contactStatus, setContactStatus] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [sortBy, setSortBy] = useState<string>('last_contacted_desc');
   const ITEMS_PER_PAGE = 10;
@@ -29,6 +31,26 @@ export default function Dashboard() {
     { value: 'Metabolic', label: 'Metabolic/Obesity', color: 'bg-orange-100 text-orange-800' },
     { value: 'Neurology', label: 'Neurology', color: 'bg-indigo-100 text-indigo-800' },
   ];
+
+  const contactStatuses = [
+    'All',
+    'Pending',
+    'Contacted',
+    'Interested',
+    'Onboard',
+    'Needs Info',
+    'Ineligible',
+    'Unreachable',
+    'Do Not Contact'
+  ];
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   useEffect(() => {
     loadPatients();
@@ -54,11 +76,11 @@ export default function Dashboard() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedStudyTypes, searchQuery, sortBy]);
+  }, [selectedStudyTypes, debouncedSearch, sortBy, contactStatus]);
 
   useEffect(() => {
     loadPatients();
-  }, [currentPage, sortBy, selectedStudyTypes, searchQuery]);
+  }, [currentPage, sortBy, selectedStudyTypes, debouncedSearch, contactStatus]);
 
   const loadPatients = async () => {
     try {
@@ -71,7 +93,8 @@ export default function Dashboard() {
       
       const result = await api.listPatients({
         studyTypes: selectedStudyTypes.length > 0 ? selectedStudyTypes : undefined,
-        searchQuery: searchQuery || undefined,
+        searchQuery: debouncedSearch || undefined,
+        contactStatus: contactStatus !== 'All' ? contactStatus : undefined,
         sort: { column: sortColumn, ascending },
         limit: ITEMS_PER_PAGE,
         offset: (currentPage - 1) * ITEMS_PER_PAGE,
@@ -127,7 +150,6 @@ export default function Dashboard() {
         return [...prev, studyType];
       }
     });
-    setCurrentPage(1);
   };
 
   const studyTypeCounts = availableStudyTypes.reduce((acc, type) => {
@@ -144,6 +166,7 @@ export default function Dashboard() {
   }, {} as Record<string, number>);
 
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
+  const hasActiveFilters = selectedStudyTypes.length > 0 || debouncedSearch || contactStatus !== 'All';
 
   if (loading && patients.length === 0) {
     return (
@@ -200,29 +223,23 @@ export default function Dashboard() {
         </div>
 
         <div className="bg-white rounded-xl border border-[var(--border)] p-6 space-y-4">
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col lg:flex-row gap-4">
             <div className="flex-1 relative">
               <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               <input
                 type="text"
-                placeholder="Search patients by name or condition..."
+                placeholder="Search by name, phone, or email..."
                 value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setCurrentPage(1);
-                }}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <select
               value={sortBy}
-              onChange={(e) => {
-                setSortBy(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onChange={(e) => setSortBy(e.target.value)}
+              className="px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[200px]"
             >
               <option value="last_contacted_desc">Last Contacted (Latest)</option>
               <option value="last_contacted_asc">Last Contacted (Oldest)</option>
@@ -236,7 +253,26 @@ export default function Dashboard() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-[var(--foreground)]">Filter by Study Type:</label>
+            <label className="text-sm font-semibold text-[var(--foreground)]">Contact Status:</label>
+            <div className="flex flex-wrap gap-2">
+              {contactStatuses.map(status => (
+                <button
+                  key={status}
+                  onClick={() => setContactStatus(status)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                    contactStatus === status
+                      ? 'bg-blue-600 text-white ring-2 ring-offset-2 ring-blue-500'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {status}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-[var(--foreground)]">Study Type:</label>
             <div className="flex flex-wrap gap-2">
               {availableStudyTypes.map(type => (
                 <button
@@ -252,24 +288,56 @@ export default function Dashboard() {
                   {selectedStudyTypes.includes(type.value) && ' ✓'}
                 </button>
               ))}
-              {selectedStudyTypes.length > 0 && (
+              {(selectedStudyTypes.length > 0 || contactStatus !== 'All') && (
                 <button
-                  onClick={() => setSelectedStudyTypes([])}
+                  onClick={() => {
+                    setSelectedStudyTypes([]);
+                    setContactStatus('All');
+                  }}
                   className="px-4 py-2 rounded-lg text-sm font-medium bg-red-50 text-red-600 hover:bg-red-100"
                 >
-                  Clear Filters
+                  Clear All Filters
                 </button>
               )}
             </div>
           </div>
         </div>
 
-        <PatientTable
-          patients={patients}
-          onSelectPatient={handleSelectPatient}
-          onStartCall={handleStartCall}
-          onUpdatePatient={(patient, updates) => handlePatientUpdate(patient.patient_id, updates)}
-        />
+        {patients.length === 0 && !loading ? (
+          <div className="bg-white rounded-xl border border-[var(--border)] p-12 text-center">
+            <svg className="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+            </svg>
+            <h3 className="text-xl font-semibold text-[var(--foreground)] mb-2">
+              {hasActiveFilters ? 'No results match your search/filters' : 'No patients found'}
+            </h3>
+            <p className="text-[var(--muted)] mb-6">
+              {hasActiveFilters 
+                ? 'Try adjusting your search terms or filters to find what you\'re looking for.'
+                : 'Get started by importing patient data.'
+              }
+            </p>
+            {hasActiveFilters && (
+              <button
+                onClick={() => {
+                  setSearchQuery('');
+                  setSelectedStudyTypes([]);
+                  setContactStatus('All');
+                }}
+                className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-medium"
+              >
+                Clear All Filters
+              </button>
+            )}
+          </div>
+        ) : (
+          <PatientTable
+            patients={patients}
+            onSelectPatient={handleSelectPatient}
+            onStartCall={handleStartCall}
+            onUpdatePatient={(patient, updates) => handlePatientUpdate(patient.patient_id, updates)}
+          />
+        )}
 
         {totalPages > 1 && (
           <div className="flex items-center justify-between bg-white rounded-xl border border-[var(--border)] p-4">

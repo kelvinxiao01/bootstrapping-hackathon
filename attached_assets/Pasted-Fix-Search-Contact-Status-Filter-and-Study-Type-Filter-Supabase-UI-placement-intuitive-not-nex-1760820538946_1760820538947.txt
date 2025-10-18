@@ -1,0 +1,44 @@
+Fix Search, Contact Status Filter, and Study Type Filter (Supabase)
+UI placement (intuitive, not next to Sort):
+Top toolbar, left → right layout:
+Search (full-width input, debounced)
+Contact Status filter (label: Contact Status, pill group: All, Pending, Contacted, Interested, Onboard, Needs Info, Ineligible, Unreachable, Do Not Contact)
+Study Type chips row (multi-select badges under the toolbar, pinned to left; label: Study Type)
+Sort By (on the far right)
+Search (fix):
+Debounce 300ms.
+Server-side filter in Supabase over name, phone, email (case-insensitive).
+Example PostgREST .or():
+.or(`name.ilike.%${q}%,phone.ilike.%${q}%,email.ilike.%${q}%`)
+If q empty → do not add the .or() clause.
+Contact Status filter (backed by Supabase status, displayed as “Contact Status”):
+Default = All (no clause).
+When a status is picked:
+.eq('status', selectedStatus)
+Study Type filter (fix logic; multi-select, any-match):
+Column: qualified_disease (aka Qualified Condition / Study Type), supports either:
+ARRAY MODE (text[]) → use overlap:
+.overlaps('qualified_disease', selectedTypesArray)
+STRING MODE (text) (comma/semicolon delimited) → OR ILIKE:
+.or(selectedTypesArray.map(t => `qualified_disease.ilike.%${t}%`).join(','))
+Must match if patient qualifies for any selected type (OR semantics).
+Combine filters (server-side; filter full dataset, then paginate 10/page):
+Build query in this order:
+base: from('patients')
+search .or(...) (if q)
+status .eq('status', ...) (if chosen)
+study type .overlaps(...) or .or(ilike...) (if any selected)
+sort .order(<field>, { ascending })
+pagination .range((page-1)*10, page*10-1)
+Also run a count (exact or planned) with the same filters to compute total pages.
+Edge cases to handle:
+If no study types selected → don’t add study type clause.
+If search + filters combine, ensure all clauses are applied together (AND across groups; OR within the study-type group).
+Trim/normalize phone input (strip spaces, dashes) before ILIKE.
+Empty states: “No results match your search/filters.”
+Acceptance criteria:
+Typing in Search narrows results by name/phone/email (server-side).
+Contact Status pills reliably filter by status.
+Study Type chips correctly include patients with any of the selected types (array or string schema).
+Results show 10 per page, pagination reflects the filtered set (not the full dataset).
+Sort works alongside all filters.
