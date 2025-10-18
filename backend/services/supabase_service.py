@@ -1,5 +1,6 @@
 import os
 import logging
+from datetime import datetime, timezone
 from supabase import create_client, Client
 
 logger = logging.getLogger(__name__)
@@ -49,7 +50,7 @@ class SupabaseService:
 
     async def update_patient_status(self, phone_number: str, status: str) -> dict:
         """
-        Update the Status column for a patient record identified by phone number.
+        Update the status and last_contacted columns for a patient record identified by phone number.
 
         Args:
             phone_number: Phone number of the participant
@@ -64,13 +65,23 @@ class SupabaseService:
         try:
             # Normalize phone number for matching
             normalized_phone = self.normalize_phone_number(phone_number)
-            logger.info(f"Updating status for phone: {normalized_phone} to '{status}'")
+
+            # Get current timestamp in ISO format with timezone
+            current_timestamp = datetime.now(timezone.utc).isoformat()
+
+            logger.info(f"Updating status for phone: {normalized_phone} to '{status}' at {current_timestamp}")
+
+            # Update both status and last_contacted columns
+            update_data = {
+                "status": status,
+                "last_contacted": current_timestamp
+            }
 
             # Try to find and update the record
             # First, try exact match with normalized phone
             result = (
-                self.client.table("Crobot Patient Database")
-                .update({"status": status})
+                self.client.table("CrobotMaster")
+                .update(update_data)
                 .eq("phone", normalized_phone)
                 .execute()
             )
@@ -80,8 +91,8 @@ class SupabaseService:
                 phone_without_plus = normalized_phone.lstrip('+')
                 logger.info(f"Trying alternate format: {phone_without_plus}")
                 result = (
-                    self.client.table("Crobot Patient Database")
-                    .update({"status": status})
+                    self.client.table("CrobotMaster")
+                    .update(update_data)
                     .eq("phone", phone_without_plus)
                     .execute()
                 )
@@ -91,19 +102,20 @@ class SupabaseService:
                 last_10_digits = normalized_phone[-10:]
                 logger.info(f"Trying last 10 digits: {last_10_digits}")
                 result = (
-                    self.client.table("Crobot Patient Database")
-                    .update({"status": status})
+                    self.client.table("CrobotMaster")
+                    .update(update_data)
                     .eq("phone", last_10_digits)
                     .execute()
                 )
 
             if result.data:
-                logger.info(f"Successfully updated {len(result.data)} record(s) to status '{status}'")
+                logger.info(f"Successfully updated {len(result.data)} record(s) to status '{status}' with timestamp")
                 return {
                     "success": True,
                     "message": f"Updated {len(result.data)} record(s)",
                     "phone_number": normalized_phone,
-                    "status": status
+                    "status": status,
+                    "last_contacted": current_timestamp
                 }
             else:
                 logger.warning(f"No records found for phone number: {normalized_phone}")
@@ -131,9 +143,9 @@ class SupabaseService:
             normalized_phone = self.normalize_phone_number(phone_number)
 
             result = (
-                self.client.table("Crobot Patient Database")
+                self.client.table("CrobotMaster")
                 .select("*")
-                .eq("phone_number", normalized_phone)
+                .eq("phone", normalized_phone)
                 .execute()
             )
 
