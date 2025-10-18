@@ -18,7 +18,12 @@ export const api = {
 
     if (params.studyTypes && params.studyTypes.length > 0) {
       const studyTypeFilters = params.studyTypes
-        .map(type => `qualified_disease.ilike.%${type}%`)
+        .map(type => {
+          if (type === 'CVD') {
+            return `qualified_disease.ilike.%CVD%,qualified_disease.ilike.%Cardiovascular%`;
+          }
+          return `qualified_disease.ilike.%${type}%`;
+        })
         .join(',');
       query = query.or(studyTypeFilters);
     }

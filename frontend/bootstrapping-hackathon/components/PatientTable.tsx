@@ -16,35 +16,40 @@ const statusConfig = {
   Onboard: { color: 'text-purple-700', bg: 'bg-purple-50/80' },
 };
 
-const getStudyTypeBadge = (disease: string): { label: string; color: string } => {
+const getAllStudyTypeBadges = (disease: string): Array<{ label: string; color: string }> => {
   const lowerDisease = disease.toLowerCase();
+  const badges: Array<{ label: string; color: string }> = [];
   
   if (lowerDisease.includes('diabetes')) {
-    return { label: 'Diabetes', color: 'bg-blue-100 text-blue-800 border-blue-200' };
+    badges.push({ label: 'Diabetes', color: 'bg-blue-100 text-blue-800 border-blue-200' });
   }
   if (lowerDisease.includes('ckd') || lowerDisease.includes('kidney')) {
-    return { label: 'CKD', color: 'bg-green-100 text-green-800 border-green-200' };
+    badges.push({ label: 'CKD', color: 'bg-green-100 text-green-800 border-green-200' });
   }
-  if (lowerDisease.includes('cardiovascular') || lowerDisease.includes('heart')) {
-    return { label: 'Cardiovascular', color: 'bg-red-100 text-red-800 border-red-200' };
+  if (lowerDisease.includes('cardiovascular') || lowerDisease.includes('cvd') || lowerDisease.includes('heart')) {
+    badges.push({ label: 'CVD', color: 'bg-red-100 text-red-800 border-red-200' });
   }
   if (lowerDisease.includes('oncology') || lowerDisease.includes('cancer')) {
-    return { label: 'Oncology', color: 'bg-purple-100 text-purple-800 border-purple-200' };
+    badges.push({ label: 'Oncology', color: 'bg-purple-100 text-purple-800 border-purple-200' });
   }
   if (lowerDisease.includes('dermatology') || lowerDisease.includes('eczema') || lowerDisease.includes('skin')) {
-    return { label: 'Dermatology', color: 'bg-yellow-100 text-yellow-800 border-yellow-200' };
+    badges.push({ label: 'Dermatology', color: 'bg-yellow-100 text-yellow-800 border-yellow-200' });
   }
   if (lowerDisease.includes('metabolic') || lowerDisease.includes('obesity')) {
-    return { label: 'Metabolic', color: 'bg-orange-100 text-orange-800 border-orange-200' };
+    badges.push({ label: 'Metabolic', color: 'bg-orange-100 text-orange-800 border-orange-200' });
   }
   if (lowerDisease.includes('neurology') || lowerDisease.includes('stroke')) {
-    return { label: 'Neurology', color: 'bg-indigo-100 text-indigo-800 border-indigo-200' };
+    badges.push({ label: 'Neurology', color: 'bg-indigo-100 text-indigo-800 border-indigo-200' });
   }
   if (lowerDisease.includes('women')) {
-    return { label: "Women's Health", color: 'bg-pink-100 text-pink-800 border-pink-200' };
+    badges.push({ label: "Women's Health", color: 'bg-pink-100 text-pink-800 border-pink-200' });
   }
   
-  return { label: disease || 'General', color: 'bg-gray-100 text-gray-800 border-gray-200' };
+  if (badges.length === 0) {
+    badges.push({ label: disease || 'None', color: 'bg-gray-100 text-gray-800 border-gray-200' });
+  }
+  
+  return badges;
 };
 
 export default function PatientTable({ patients, onSelectPatient, onUpdatePatient, onStartCall }: PatientTableProps) {
@@ -93,7 +98,7 @@ export default function PatientTable({ patients, onSelectPatient, onUpdatePatien
               const name = patient.name || 'Unknown';
               const email = patient.email || patient.phone || '';
               const qualifiedDisease = patient.qualified_disease || 'General';
-              const badge = getStudyTypeBadge(qualifiedDisease);
+              const badges = getAllStudyTypeBadges(qualifiedDisease);
               const status = patient.status || 'Pending';
               const lastContacted = patient.last_contacted || '—';
               const initials = name.split(' ').map(n => n[0]).join('').toUpperCase();
@@ -104,9 +109,13 @@ export default function PatientTable({ patients, onSelectPatient, onUpdatePatien
                   className="border-b border-[var(--border)] last:border-0 smooth-transition hover:bg-gray-50/50"
                 >
                   <td className="px-6 py-4">
-                    <span className={`inline-flex items-center px-4 py-2 rounded-lg text-sm font-semibold border-2 ${badge.color}`}>
-                      {badge.label}
-                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {badges.map((badge, idx) => (
+                        <span key={idx} className={`inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-semibold border-2 ${badge.color}`}>
+                          {badge.label}
+                        </span>
+                      ))}
+                    </div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center space-x-3">

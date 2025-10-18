@@ -24,6 +24,7 @@ export default function Dashboard() {
     { value: 'Diabetes', label: 'Diabetes', color: 'bg-blue-100 text-blue-800' },
     { value: 'CKD', label: 'Chronic Kidney Disease', color: 'bg-green-100 text-green-800' },
     { value: 'Cardiovascular', label: 'Cardiovascular', color: 'bg-red-100 text-red-800' },
+    { value: 'CVD', label: 'CVD', color: 'bg-red-100 text-red-800' },
     { value: 'Oncology', label: 'Oncology', color: 'bg-purple-100 text-purple-800' },
     { value: 'Dermatology', label: 'Dermatology', color: 'bg-yellow-100 text-yellow-800' },
     { value: 'Metabolic', label: 'Metabolic/Obesity', color: 'bg-orange-100 text-orange-800' },
@@ -132,9 +133,15 @@ export default function Dashboard() {
   };
 
   const studyTypeCounts = availableStudyTypes.reduce((acc, type) => {
-    acc[type.value] = patients.filter(p => 
-      (p.qualified_disease || '').toLowerCase().includes(type.value.toLowerCase())
-    ).length;
+    acc[type.value] = patients.filter(p => {
+      const disease = (p.qualified_disease || '').toLowerCase();
+      const typeValue = type.value.toLowerCase();
+      
+      if (type.value === 'CVD') {
+        return disease.includes('cvd') || disease.includes('cardiovascular');
+      }
+      return disease.includes(typeValue);
+    }).length;
     return acc;
   }, {} as Record<string, number>);
 
