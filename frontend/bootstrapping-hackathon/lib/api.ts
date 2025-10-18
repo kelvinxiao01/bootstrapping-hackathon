@@ -17,28 +17,50 @@ export const api = {
   async listPatients(params: ListPatientsParams = {}) {
     let query = supabase.from(TABLE_NAME).select('*', { count: 'exact' });
 
-    if (params.searchQuery && params.searchQuery.trim()) {
-      const search = params.searchQuery.trim();
+    const hasSearch = params.searchQuery && params.searchQuery.trim();
+    const hasStudyTypes = params.studyTypes && params.studyTypes.length > 0;
+
+    if (hasSearch && hasStudyTypes) {
+      const search = params.searchQuery!.trim();
+      const normalizedSearch = search.replace(/[\s\-]/g, '');
+      
+      const searchConditions = [
+        `full_name.ilike.%${search}%`,
+        `phone.ilike.%${normalizedSearch}%`,
+        `email.ilike.%${search}%`
+      ];
+      
+      const studyTypeConditions = params.studyTypes!.flatMap(type => {
+        if (type === 'CVD') {
+          return [`qualified_disease.ilike.%CVD%`, `qualified_disease.ilike.%Cardiovascular%`];
+        }
+        return [`qualified_disease.ilike.%${type}%`];
+      });
+      
+      const allConditions = [...searchConditions, ...studyTypeConditions];
+      query = query.or(allConditions.join(','));
+      
+    } else if (hasSearch) {
+      const search = params.searchQuery!.trim();
       const normalizedSearch = search.replace(/[\s\-]/g, '');
       
       query = query.or(
         `full_name.ilike.%${search}%,phone.ilike.%${normalizedSearch}%,email.ilike.%${search}%`
       );
+      
+    } else if (hasStudyTypes) {
+      const studyTypeConditions = params.studyTypes!.flatMap(type => {
+        if (type === 'CVD') {
+          return [`qualified_disease.ilike.%CVD%`, `qualified_disease.ilike.%Cardiovascular%`];
+        }
+        return [`qualified_disease.ilike.%${type}%`];
+      }).join(',');
+      
+      query = query.or(studyTypeConditions);
     }
 
     if (params.contactStatus && params.contactStatus !== 'All') {
       query = query.eq('status', params.contactStatus);
-    }
-
-    if (params.studyTypes && params.studyTypes.length > 0) {
-      const studyTypeConditions = params.studyTypes.map(type => {
-        if (type === 'CVD') {
-          return `qualified_disease.ilike.%CVD%,qualified_disease.ilike.%Cardiovascular%`;
-        }
-        return `qualified_disease.ilike.%${type}%`;
-      }).join(',');
-      
-      query = query.or(studyTypeConditions);
     }
 
     if (params.filters) {
@@ -92,7 +114,7 @@ export const api = {
     const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
     const response = await fetch(`${API_BASE_URL}/calls/start`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json'},
       body: JSON.stringify({ patient_id: patientId }),
     });
     if (!response.ok) throw new Error('Failed to start call');
