@@ -46,7 +46,7 @@ export default function Dashboard() {
     <div className="min-h-screen">
       <Header />
       
-      <main className="max-w-7xl mx-auto px-6 pt-24 pb-12 space-y-8 fade-in">
+      <main className="max-w-7xl mx-auto px-6 pt-24 pb-12 space-y-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div className="space-y-1">
             <h1 className="text-3xl font-bold text-[var(--foreground)] tracking-tight">
