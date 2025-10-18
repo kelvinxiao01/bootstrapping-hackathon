@@ -10,14 +10,12 @@ import { api } from '@/lib/api';
 
 export default function Dashboard() {
   const router = useRouter();
-  const [patients, setPatients] = useState<Patient[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
+  const [allPatients, setAllPatients] = useState<Patient[]>([]); // Full dataset
   const [loading, setLoading] = useState(true);
   const [showImport, setShowImport] = useState(false);
   const [selectedStudyTypes, setSelectedStudyTypes] = useState<string[]>([]);
   const [contactStatus, setContactStatus] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [sortBy, setSortBy] = useState<string>('last_contacted_desc');
   const ITEMS_PER_PAGE = 10;
@@ -44,28 +42,21 @@ export default function Dashboard() {
     'Do Not Contact'
   ];
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchQuery);
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
-
+  // Load all patients once on mount
   useEffect(() => {
     loadPatients();
 
     const subscription = api.subscribeToPatients((payload) => {
       console.log('Realtime event:', payload.eventType, payload.new);
-      
+
       if (payload.eventType === 'INSERT' && payload.new) {
-        setPatients(prev => [...prev, payload.new]);
+        setAllPatients(prev => [...prev, payload.new]);
       } else if (payload.eventType === 'UPDATE' && payload.new) {
-        setPatients(prev => prev.map(p => 
+        setAllPatients(prev => prev.map(p =>
           p.patient_id === payload.new.patient_id ? payload.new : p
         ));
       } else if (payload.eventType === 'DELETE' && payload.old) {
-        setPatients(prev => prev.filter(p => p.patient_id !== payload.old.patient_id));
+        setAllPatients(prev => prev.filter(p => p.patient_id !== payload.old.patient_id));
       }
     });
 
@@ -74,34 +65,19 @@ export default function Dashboard() {
     };
   }, []);
 
+  // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedStudyTypes, debouncedSearch, sortBy, contactStatus]);
-
-  useEffect(() => {
-    loadPatients();
-  }, [currentPage, sortBy, selectedStudyTypes, debouncedSearch, contactStatus]);
+  }, [selectedStudyTypes, searchQuery, sortBy, contactStatus]);
 
   const loadPatients = async () => {
     try {
       setLoading(true);
-      
-      const lastUnderscoreIndex = sortBy.lastIndexOf('_');
-      const sortColumn = sortBy.substring(0, lastUnderscoreIndex);
-      const sortDirection = sortBy.substring(lastUnderscoreIndex + 1);
-      const ascending = sortDirection !== 'desc';
-      
-      const result = await api.listPatients({
-        studyTypes: selectedStudyTypes.length > 0 ? selectedStudyTypes : undefined,
-        searchQuery: debouncedSearch || undefined,
-        contactStatus: contactStatus !== 'All' ? contactStatus : undefined,
-        sort: { column: sortColumn, ascending },
-        limit: ITEMS_PER_PAGE,
-        offset: (currentPage - 1) * ITEMS_PER_PAGE,
-      });
-      
-      setPatients(result.data);
-      setTotalCount(result.count);
+
+      // Fetch all patients from Supabase (no filtering, no pagination)
+      const result = await api.listPatients();
+
+      setAllPatients(result.data);
     } catch (error) {
       console.error('Failed to load patients:', error);
     } finally {
@@ -109,10 +85,94 @@ export default function Dashboard() {
     }
   };
 
+  // Helper: Check if patient matches study type
+  const matchesStudyType = (qualifiedDisease: string, studyType: string): boolean => {
+    const lowerDisease = (qualifiedDisease || '').toLowerCase();
+
+    switch (studyType) {
+      case 'Diabetes':
+        return lowerDisease.includes('diabetes');
+      case 'CKD':
+        return lowerDisease.includes('ckd') || lowerDisease.includes('kidney');
+      case 'CVD':
+        return lowerDisease.includes('cardiovascular') || lowerDisease.includes('cvd') || lowerDisease.includes('heart');
+      case 'Oncology':
+        return lowerDisease.includes('oncology') || lowerDisease.includes('cancer');
+      case 'Dermatology':
+        return lowerDisease.includes('dermatology') || lowerDisease.includes('eczema') || lowerDisease.includes('skin');
+      case 'Metabolic':
+        return lowerDisease.includes('metabolic') || lowerDisease.includes('obesity');
+      case 'Neurology':
+        return lowerDisease.includes('neurology') || lowerDisease.includes('stroke');
+      default:
+        return lowerDisease.includes(studyType.toLowerCase());
+    }
+  };
+
+  // Client-side filtering, sorting, and pagination
+  const { patients, totalCount } = (() => {
+    let filtered = [...allPatients];
+
+    // 1. Filter by search query (name, phone, email)
+    if (searchQuery.trim()) {
+      const search = searchQuery.trim().toLowerCase();
+      const normalizedSearch = search.replace(/[\s\-]/g, '');
+
+      filtered = filtered.filter(patient => {
+        const name = (patient.name || patient.full_name || '').toLowerCase();
+        const email = (patient.email || '').toLowerCase();
+        const phone = (patient.phone || '').replace(/[\s\-]/g, '');
+
+        return name.includes(search) || email.includes(search) || phone.includes(normalizedSearch);
+      });
+    }
+
+    // 2. Filter by contact status
+    if (contactStatus !== 'All') {
+      filtered = filtered.filter(patient => patient.status === contactStatus);
+    }
+
+    // 3. Filter by study types (must match ALL selected types)
+    if (selectedStudyTypes.length > 0) {
+      filtered = filtered.filter(patient => {
+        const qualifiedDisease = patient.qualified_disease || patient.qualified_condition || '';
+        return selectedStudyTypes.every(studyType => matchesStudyType(qualifiedDisease, studyType));
+      });
+    }
+
+    // 4. Sort
+    const lastUnderscoreIndex = sortBy.lastIndexOf('_');
+    const sortColumn = sortBy.substring(0, lastUnderscoreIndex);
+    const sortDirection = sortBy.substring(lastUnderscoreIndex + 1);
+
+    filtered.sort((a, b) => {
+      const aValue = (a as any)[sortColumn] || '';
+      const bValue = (b as any)[sortColumn] || '';
+
+      let comparison = 0;
+      if (typeof aValue === 'string') {
+        comparison = aValue.localeCompare(bValue);
+      } else {
+        comparison = aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
+      }
+
+      return sortDirection === 'desc' ? -comparison : comparison;
+    });
+
+    // 5. Paginate
+    const totalCount = filtered.length;
+    const paginatedPatients = filtered.slice(
+      (currentPage - 1) * ITEMS_PER_PAGE,
+      currentPage * ITEMS_PER_PAGE
+    );
+
+    return { patients: paginatedPatients, totalCount };
+  })();
+
   const handlePatientUpdate = async (id: string, updates: Record<string, any>) => {
     try {
       const updated = await api.updatePatient(id, updates);
-      setPatients(prev => prev.map(p => p.patient_id === id ? updated : p));
+      setAllPatients(prev => prev.map(p => p.patient_id === id ? updated : p));
     } catch (error) {
       console.error('Failed to update patient:', error);
     }
@@ -126,9 +186,9 @@ export default function Dashboard() {
     try {
       const result = await api.startCall(patient.patient_id);
       alert(`Call started successfully! Call ID: ${result.call_id}`);
-      
+
       await handlePatientUpdate(patient.patient_id, {
-        last_contacted: new Date().toISOString().split('T')[0],
+        last_contacted: new Date().toISOString(), // Full ISO timestamp for timestamptz
         status: 'Contacted',
       });
     } catch (error) {
@@ -153,22 +213,17 @@ export default function Dashboard() {
   };
 
   const studyTypeCounts = availableStudyTypes.reduce((acc, type) => {
-    acc[type.value] = patients.filter(p => {
+    acc[type.value] = allPatients.filter(p => {
       const disease = (p.qualified_disease || '').toLowerCase();
-      const typeValue = type.value.toLowerCase();
-      
-      if (type.value === 'CVD') {
-        return disease.includes('cvd') || disease.includes('cardiovascular');
-      }
-      return disease.includes(typeValue);
+      return matchesStudyType(disease, type.value);
     }).length;
     return acc;
   }, {} as Record<string, number>);
 
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
-  const hasActiveFilters = selectedStudyTypes.length > 0 || debouncedSearch || contactStatus !== 'All';
+  const hasActiveFilters = selectedStudyTypes.length > 0 || searchQuery.trim() || contactStatus !== 'All';
 
-  if (loading && patients.length === 0) {
+  if (loading && allPatients.length === 0) {
     return (
       <div className="min-h-screen bg-[var(--background)]">
         <Header />
