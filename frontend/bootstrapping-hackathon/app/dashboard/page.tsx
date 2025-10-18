@@ -43,7 +43,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--background)]">
+    <div className="min-h-screen">
       <Header />
       
       <main className="max-w-7xl mx-auto px-6 pt-24 pb-12 space-y-8 fade-in">
