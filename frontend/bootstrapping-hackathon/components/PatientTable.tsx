@@ -77,8 +77,9 @@ export default function PatientTable({ patients, onSelectPatient, onUpdatePatien
           </thead>
           <tbody>
             {patients.map((patient) => {
+              const patientId = patient.id || patient.patient_id || '';
               const name = patient.name || patient.full_name || 'Unknown';
-              const email = patient.email || patient.phone_number || '';
+              const email = patient.email || patient.phone_number || patient.phone || '';
               const qualifiedCondition = patient.qualified_condition || patient.qualified_disease || 'N/A';
               const topCategory = patient.top_category || 'Not Scored';
               const eligibilityScore = patient.eligibility_score ?? 0;
@@ -89,7 +90,7 @@ export default function PatientTable({ patients, onSelectPatient, onUpdatePatien
 
               return (
                 <tr
-                  key={patient.id}
+                  key={patientId}
                   className="border-b border-[var(--border)] last:border-0 smooth-transition hover:bg-gray-50/50"
                 >
                   <td className="px-6 py-4">

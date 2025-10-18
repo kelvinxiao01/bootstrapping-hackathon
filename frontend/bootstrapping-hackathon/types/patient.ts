@@ -17,7 +17,8 @@ export interface EligibilityResult {
 }
 
 export interface Patient {
-  id: string;
+  id?: string;
+  patient_id?: string;
   
   name?: string;
   full_name?: string;

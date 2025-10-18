@@ -44,7 +44,7 @@ export const api = {
     const { data, error } = await supabase
       .from(TABLE_NAME)
       .select('*')
-      .eq('id', id)
+      .or(`id.eq.${id},patient_id.eq.${id}`)
       .single();
 
     if (error) throw error;
@@ -55,7 +55,7 @@ export const api = {
     const { data, error } = await supabase
       .from(TABLE_NAME)
       .update(updates)
-      .eq('id', id)
+      .or(`id.eq.${id},patient_id.eq.${id}`)
       .select()
       .single();
 

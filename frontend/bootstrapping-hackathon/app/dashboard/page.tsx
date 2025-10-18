@@ -27,11 +27,17 @@ export default function Dashboard() {
       if (payload.eventType === 'INSERT' && payload.new) {
         setPatients(prev => [...prev, payload.new]);
       } else if (payload.eventType === 'UPDATE' && payload.new) {
-        setPatients(prev => prev.map(p => 
-          p.id === payload.new.id ? payload.new : p
-        ));
+        const newId = payload.new.id || payload.new.patient_id;
+        setPatients(prev => prev.map(p => {
+          const pId = p.id || p.patient_id;
+          return pId === newId ? payload.new : p;
+        }));
       } else if (payload.eventType === 'DELETE' && payload.old) {
-        setPatients(prev => prev.filter(p => p.id !== payload.old.id));
+        const oldId = payload.old.id || payload.old.patient_id;
+        setPatients(prev => prev.filter(p => {
+          const pId = p.id || p.patient_id;
+          return pId !== oldId;
+        }));
       }
     });
 
@@ -68,22 +74,27 @@ export default function Dashboard() {
   const handlePatientUpdate = async (id: string, updates: Record<string, any>) => {
     try {
       const updated = await api.updatePatient(id, updates);
-      setPatients(prev => prev.map(p => p.id === id ? updated : p));
+      setPatients(prev => prev.map(p => {
+        const pId = p.id || p.patient_id;
+        return pId === id ? updated : p;
+      }));
     } catch (error) {
       console.error('Failed to update patient:', error);
     }
   };
 
   const handleSelectPatient = (patient: Patient) => {
-    router.push(`/patients/${patient.id}`);
+    const patientId = patient.id || patient.patient_id || '';
+    router.push(`/patients/${patientId}`);
   };
 
   const handleStartCall = async (patient: Patient) => {
+    const patientId = patient.id || patient.patient_id || '';
     try {
-      const result = await api.startCall(patient.id);
+      const result = await api.startCall(patientId);
       alert(`Call started successfully! Call ID: ${result.call_id}`);
       
-      await handlePatientUpdate(patient.id, {
+      await handlePatientUpdate(patientId, {
         last_contacted: new Date().toISOString().split('T')[0],
         status: 'Contacted',
       });
@@ -94,10 +105,11 @@ export default function Dashboard() {
   };
 
   const handleRescoreEligibility = async (patient: Patient) => {
+    const patientId = patient.id || patient.patient_id || '';
     try {
       const eligibility = calculateLocalEligibility(patient);
       
-      await handlePatientUpdate(patient.id, {
+      await handlePatientUpdate(patientId, {
         top_category: eligibility.topCategory,
         eligibility_score: eligibility.score,
         eligibility_label: eligibility.label,
@@ -231,7 +243,10 @@ export default function Dashboard() {
           onSelectPatient={handleSelectPatient}
           onStartCall={handleStartCall}
           onRescoreEligibility={handleRescoreEligibility}
-          onUpdatePatient={(patient, updates) => handlePatientUpdate(patient.id, updates)}
+          onUpdatePatient={(patient, updates) => {
+            const patientId = patient.id || patient.patient_id || '';
+            handlePatientUpdate(patientId, updates);
+          }}
         />
       </main>
 
