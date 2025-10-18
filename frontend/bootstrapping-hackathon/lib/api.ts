@@ -8,9 +8,11 @@ export interface ListPatientsParams {
   offset?: number;
 }
 
+const TABLE_NAME = 'Crobot Patient Database';
+
 export const api = {
   async listPatients(params: ListPatientsParams = {}) {
-    let query = supabase.from('patients').select('*');
+    let query = supabase.from(TABLE_NAME).select('*');
 
     if (params.filters) {
       Object.entries(params.filters).forEach(([key, value]) => {
@@ -40,7 +42,7 @@ export const api = {
 
   async getPatient(id: string) {
     const { data, error } = await supabase
-      .from('patients')
+      .from(TABLE_NAME)
       .select('*')
       .eq('id', id)
       .single();
@@ -51,7 +53,7 @@ export const api = {
 
   async updatePatient(id: string, updates: Record<string, any>) {
     const { data, error } = await supabase
-      .from('patients')
+      .from(TABLE_NAME)
       .update(updates)
       .eq('id', id)
       .select()
@@ -88,13 +90,13 @@ export const api = {
   subscribeToPatients(callback: (payload: any) => void) {
     return supabase
       .channel('patients-changes')
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'patients' }, callback)
+      .on('postgres_changes', { event: '*', schema: 'public', table: TABLE_NAME }, callback)
       .subscribe();
   },
 
   async getTableColumns() {
     const { data, error } = await supabase
-      .from('patients')
+      .from(TABLE_NAME)
       .select('*')
       .limit(1);
 

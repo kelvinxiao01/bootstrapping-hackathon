@@ -22,10 +22,16 @@ export default function Dashboard() {
     loadPatients();
 
     const subscription = api.subscribeToPatients((payload) => {
-      if (payload.new) {
+      console.log('Realtime event:', payload.eventType, payload.new);
+      
+      if (payload.eventType === 'INSERT' && payload.new) {
+        setPatients(prev => [...prev, payload.new]);
+      } else if (payload.eventType === 'UPDATE' && payload.new) {
         setPatients(prev => prev.map(p => 
           p.id === payload.new.id ? payload.new : p
         ));
+      } else if (payload.eventType === 'DELETE' && payload.old) {
+        setPatients(prev => prev.filter(p => p.id !== payload.old.id));
       }
     });
 
