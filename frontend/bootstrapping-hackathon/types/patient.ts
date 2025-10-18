@@ -1,13 +1,11 @@
-export type EligibilityStatus = 'eligible' | 'ineligible' | 'needs_review' | 'pending';
-
 export type TrialCategory = 
   | 'Diabetes Trials'
   | 'Cardiovascular Trials'
   | 'Chronic Kidney Disease Trials'
-  | 'Eczema / Dermatology Trials'
+  | 'Eczema/Dermatology Trials'
   | 'Oncology Trials'
   | "Women's Health Trials"
-  | 'Metabolic / Obesity Trials'
+  | 'Metabolic/Obesity Trials'
   | 'Neurology Trials'
   | 'General Preventive Health Trials';
 
@@ -20,94 +18,77 @@ export interface EligibilityResult {
 
 export interface Patient {
   id: string;
-  name: string;
-  email: string;
-  phone: string;
   
-  // Demographics
-  dateOfBirth: string;
-  age: number;
-  sexAtBirth: 'Male' | 'Female' | 'Other';
-  heightCm: number;
-  weightKg: number;
-  bmi: number;
+  name?: string;
+  full_name?: string;
+  email?: string;
+  phone?: string;
+  phone_number?: string;
   
-  // Vitals
-  systolicBP: number;
-  diastolicBP: number;
+  dob?: string;
+  age?: number;
+  sex?: string;
+  height_cm?: number;
+  weight_kg?: number;
+  bmi?: number;
   
-  // Lifestyle
-  smokingStatus: 'Never' | 'Former' | 'Current';
-  packYears?: number;
+  systolic_bp?: number;
+  diastolic_bp?: number;
   
-  // Diabetes
-  diabetesDiagnosis: boolean;
-  diabetesType?: 'Type 1' | 'Type 2' | 'Prediabetes';
-  recentA1C?: number;
-  a1cDate?: string;
+  smoking_status?: string;
+  pack_years?: number;
   
-  // Kidney
-  ckdStage?: 'Stage 1' | 'Stage 2' | 'Stage 3a' | 'Stage 3b' | 'Stage 4' | 'Stage 5' | 'None';
-  recentEGFR?: number;
-  egfrDate?: string;
+  diabetes_dx?: string;
+  diabetes_type?: string;
+  a1c_pct_recent?: number;
   
-  // Liver
+  ckd_stage?: number | string;
+  egfr_ml_min_1_73m2_recent?: number;
+  
   alt?: number;
   ast?: number;
   bilirubin?: number;
   
-  // Cardiovascular
-  miHistory: boolean;
-  strokeTiaHistory: boolean;
-  padHistory: boolean;
-  heartFailureHistory: boolean;
-  lvef?: number;
-  lvefDate?: string;
-  nyhaClass?: 'I' | 'II' | 'III' | 'IV';
+  mi_history?: string;
+  stroke_tia_history?: string;
+  pad_history?: string;
+  hf_history?: string;
+  lvef_pct?: number;
+  nyha_class?: number | string;
   
-  // Medications
-  onStatin: boolean;
-  onAnticoagulant: boolean;
-  onSGLT2: boolean;
-  onGLP1: boolean;
-  onInsulin: boolean;
-  medications: string[];
+  statin_current?: string;
+  anticoagulant_current?: string;
+  sglt2_current?: string;
+  glp1_current?: string;
+  insulin_current?: string;
+  medication_list?: string;
   
-  // Biomarkers
-  ntProBNP?: number;
+  ntprobnp_pg_ml?: number;
   troponin?: number;
-  ldlCholesterol?: number;
-  hdlCholesterol?: number;
-  triglycerides?: number;
+  ldl_mg_dl?: number;
+  hdl_mg_dl?: number;
+  triglycerides_mg_dl?: number;
   
-  // Dermatology
-  eczemaHistory: boolean;
-  eczemaIgaScore?: number;
+  eczema_history?: string;
+  iga_score?: number;
   
-  // Oncology
-  activeCancer: boolean;
-  primaryCancerSite?: string;
-  cancerStage?: string;
-  cancerTreatmentStatus?: 'Active' | 'Complete' | 'Not Treated';
+  active_cancer?: string;
+  cancer_primary_site?: string;
+  cancer_stage?: string;
+  treatment_status?: string;
   
-  // Women's Health
-  pregnancyStatus?: 'Pregnant' | 'Not Pregnant' | 'Not Applicable';
+  pregnancy_status?: string;
   
-  // Trial matching
-  qualifiedCondition: string;
-  eligibility: EligibilityResult;
+  qualified_condition?: string;
+  qualified_disease?: string;
+  top_category?: string;
+  eligibility_score?: number;
+  eligibility_label?: string;
   
-  // Status tracking
-  currentStatus: 'Pending' | 'Contacted' | 'Interested' | 'Onboard';
-  lastContactedDate?: string;
+  status?: string;
+  last_contacted?: string;
   notes?: string;
-  createdAt: string;
-}
+  created_at?: string;
 
-export interface PatientFilters {
-  status?: EligibilityStatus;
-  currentStatus?: Patient['currentStatus'];
-  condition?: string;
-  minScore?: number;
-  searchQuery?: string;
+  [key: string]: any;
 }
