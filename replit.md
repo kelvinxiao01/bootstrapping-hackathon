@@ -26,8 +26,14 @@ The application features a professional and clean UI suitable for clinical use, 
 - **Frontend**: Built with Next.js 15 (App Router), React 19, TypeScript, and Tailwind CSS v4.
 - **Backend**: Supabase (PostgreSQL) is used as the database.
 - **Data Handling**: Utilizes Supabase's real-time subscriptions for live dashboard updates, efficient data fetching with `.range()` for pagination, and direct Supabase service functions for patient management (list, get, update).
-- **Filtering & Sorting**: Implements multi-select filtering by qualified study type, and sorting options for 'Last Contacted', 'Name', 'Age', and 'Status'.
-- **Pagination**: Displays 10 patients per page with intuitive navigation.
+- **Filtering System**: Comprehensive server-side filtering with OR semantics:
+  - **Search Filter**: Debounced (300ms) search across name, phone, and email fields with OR logic
+  - **Contact Status Filter**: Exact match filter (All, Pending, Contacted, Interested, Onboard, Needs Info, Ineligible, Unreachable, Do Not Contact)
+  - **Study Type Filter**: Multi-select with OR semantics - matches patients qualified for ANY selected study type
+  - **Combined Filters**: When search and study type filters are both active, they use OR semantics (match search OR study type) due to Supabase query builder limitations
+  - All filters use server-side processing with accurate pagination counts
+- **Sorting**: Options for 'Last Contacted', 'Name', 'Age', and 'Status' with ascending/descending toggle.
+- **Pagination**: Displays 10 patients per page with intuitive navigation and accurate total counts.
 - **CSV Import**: Supports drag-and-drop CSV uploads with a preview feature.
 - **Eligibility Scoring**: Local, rule-based scoring algorithm (client-side) for patient eligibility, cached in Supabase.
 - **Dynamic Fields**: Supports 54-column flexible patient data model with dynamic conversion from snake_case to human-readable labels.
