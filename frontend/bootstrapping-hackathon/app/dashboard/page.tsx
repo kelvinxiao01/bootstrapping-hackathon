@@ -61,7 +61,9 @@ export default function Dashboard() {
     try {
       setLoading(true);
       
-      const [sortColumn, sortDirection] = sortBy.split('_');
+      const lastUnderscoreIndex = sortBy.lastIndexOf('_');
+      const sortColumn = sortBy.substring(0, lastUnderscoreIndex);
+      const sortDirection = sortBy.substring(lastUnderscoreIndex + 1);
       const ascending = sortDirection !== 'desc';
       
       const result = await api.listPatients({
