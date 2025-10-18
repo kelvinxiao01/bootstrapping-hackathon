@@ -20,53 +20,29 @@ export const api = {
     const hasSearch = params.searchQuery && params.searchQuery.trim();
     const hasStudyTypes = params.studyTypes && params.studyTypes.length > 0;
 
-    if (hasSearch && hasStudyTypes) {
-      const search = params.searchQuery!.trim();
-      const normalizedSearch = search.replace(/[\s\-]/g, '');
-      
-      const searchConditions = [
-        `full_name.ilike.%${search}%`,
-        `phone.ilike.%${normalizedSearch}%`,
-        `email.ilike.%${search}%`
-      ];
-      
-      const studyTypeConditions = params.studyTypes!.flatMap(type => {
-        if (type === 'CVD') {
-          return [`qualified_disease.ilike.%CVD%`, `qualified_disease.ilike.%Cardiovascular%`];
-        }
-        if (type === 'Chronic Kidney Disease') {
-          return [`qualified_disease.ilike.%CKD%`, `qualified_disease.ilike.%Chronic Kidney Disease%`];
-        }
-        return [`qualified_disease.ilike.%${type}%`];
-      });
-      
-      const allConditions = [...searchConditions, ...studyTypeConditions];
-      query = query.or(allConditions.join(','));
-      
-    } else if (hasSearch) {
+    if (hasSearch) {
       const search = params.searchQuery!.trim();
       const normalizedSearch = search.replace(/[\s\-]/g, '');
       
       query = query.or(
         `full_name.ilike.%${search}%,phone.ilike.%${normalizedSearch}%,email.ilike.%${search}%`
       );
-      
-    } else if (hasStudyTypes) {
-      const studyTypeConditions = params.studyTypes!.flatMap(type => {
-        if (type === 'CVD') {
-          return [`qualified_disease.ilike.%CVD%`, `qualified_disease.ilike.%Cardiovascular%`];
-        }
-        if (type === 'Chronic Kidney Disease') {
-          return [`qualified_disease.ilike.%CKD%`, `qualified_disease.ilike.%Chronic Kidney Disease%`];
-        }
-        return [`qualified_disease.ilike.%${type}%`];
-      }).join(',');
-      
-      query = query.or(studyTypeConditions);
     }
 
     if (params.contactStatus && params.contactStatus !== 'All') {
       query = query.eq('status', params.contactStatus);
+    }
+
+    if (hasStudyTypes) {
+      params.studyTypes!.forEach(type => {
+        if (type === 'CVD') {
+          query = query.or(`qualified_disease.ilike.%CVD%,qualified_disease.ilike.%Cardiovascular%`);
+        } else if (type === 'Chronic Kidney Disease') {
+          query = query.or(`qualified_disease.ilike.%CKD%,qualified_disease.ilike.%Chronic Kidney Disease%`);
+        } else {
+          query = query.ilike('qualified_disease', `%${type}%`);
+        }
+      });
     }
 
     if (params.filters) {

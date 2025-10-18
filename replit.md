@@ -26,11 +26,11 @@ The application features a professional and clean UI suitable for clinical use, 
 - **Frontend**: Built with Next.js 15 (App Router), React 19, TypeScript, and Tailwind CSS v4.
 - **Backend**: Supabase (PostgreSQL) is used as the database.
 - **Data Handling**: Utilizes Supabase's real-time subscriptions for live dashboard updates, efficient data fetching with `.range()` for pagination, and direct Supabase service functions for patient management (list, get, update).
-- **Filtering System**: Comprehensive server-side filtering with OR semantics:
+- **Filtering System**: Comprehensive server-side filtering:
   - **Search Filter**: Debounced (300ms) search across name, phone, and email fields with OR logic
   - **Contact Status Filter**: Exact match filter (All, Pending, Contacted, Interested, Onboard, Needs Info, Ineligible, Unreachable, Do Not Contact)
-  - **Study Type Filter**: Multi-select with OR semantics - matches patients qualified for ANY selected study type
-  - **Combined Filters**: When search and study type filters are both active, they use OR semantics (match search OR study type) due to Supabase query builder limitations
+  - **Study Type Filter**: Multi-select with AND semantics - matches patients qualified for ALL selected study types (intersection)
+  - **Filter Aliases**: CVD matches "CVD" or "Cardiovascular Disease"; CKD matches "CKD" or "Chronic Kidney Disease"
   - All filters use server-side processing with accurate pagination counts
 - **Sorting**: Options for 'Last Contacted', 'Name', 'Age', and 'Status' with ascending/descending toggle.
 - **Pagination**: Displays 10 patients per page with intuitive navigation and accurate total counts.
