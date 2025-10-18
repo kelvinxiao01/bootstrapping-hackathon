@@ -1,11 +1,12 @@
 # CRO Recruiter - Clinical Trial Patient Management
 
 ## Overview
-This is a **CRO Recruiter** application for clinical trial patient recruitment and management, built with Next.js frontend and Python backend (ready for AI integration).
+This is a **CRO Recruiter** application for clinical trial patient recruitment and management, built with Next.js frontend and Supabase database backend.
 
-**Current State:** ✅ Fully functional frontend with mock data, ready for backend integration
+**Current State:** ✅ Fully functional Supabase-integrated application with local eligibility scoring
 - Frontend: Next.js 15.5.6 with React 19, TypeScript, and Tailwind CSS v4
-- Backend: Python 3.11 (ready for AI calling and eligibility scoring)
+- Database: Supabase (PostgreSQL) with realtime subscriptions
+- Eligibility Scoring: Local deterministic algorithm (no external AI API required)
 - Development server running on port 5000
 
 ## Application Features
@@ -31,10 +32,11 @@ This is a **CRO Recruiter** application for clinical trial patient recruitment a
   - Clinical notes (editable)
   - Action buttons for AI features
 
-### AI Integration (Ready for Backend)
-- **Recalculate Eligibility**: Button to trigger AI scoring algorithm
-- **Start Call**: Button to initiate automated patient calling system
-- Mock implementations show expected workflow
+### Local Eligibility Scoring
+- **Deterministic Algorithm**: 9 fixed trial categories with rule-based scoring (0-100)
+- **Instant Calculation**: Client-side computation with no network latency
+- **Automatic Caching**: Results saved to Supabase for persistence
+- **Re-score Button**: Recalculate eligibility anytime with latest patient data
 
 ### CSV Import
 - **Drag & Drop**: Upload patient data via CSV files
@@ -42,56 +44,54 @@ This is a **CRO Recruiter** application for clinical trial patient recruitment a
 - **Sample Format**: Includes example CSV structure
 - Supports: name, age, diagnosis, email, phone, medications
 
-### Backend API Layer
-Ready-to-use API service functions for:
-- `GET /patients` - Fetch all patients
-- `GET /patients/:id` - Fetch single patient
-- `POST /score` - Calculate eligibility score
-- `POST /call/start` - Initiate AI calling
-- `PATCH /patients/:id` - Update patient data
-- `POST /patients/import` - Bulk import patients
+### Supabase Data Layer
+Ready-to-use Supabase service functions for:
+- `listPatients()` - Fetch all patients from Supabase
+- `getPatient(id)` - Fetch single patient by ID
+- `updatePatient(id, updates)` - Update patient data
+- `rescorePatient(id)` - Calculate and cache eligibility locally
+- `subscribeToPatients()` - Realtime updates via Supabase subscriptions
+- `getTableColumns()` - Dynamic schema introspection
 
 ## Recent Changes
 
-**October 18, 2025** - Comprehensive Dashboard Redesign & Clinical Data Integration
-- **Expanded Patient Data Model** with 50+ comprehensive clinical fields:
-  - Demographics: DOB, age, sex, height, weight, BMI
-  - Vitals: Systolic/Diastolic BP
-  - Lifestyle: Smoking status, pack years
-  - Diabetes: Diagnosis, type, A1C, eGFR, CKD stage
-  - Cardiovascular: MI history, stroke/TIA, PAD, heart failure, LVEF, NYHA class
-  - Medications: Statin, anticoagulant, SGLT2, GLP-1, insulin, full medication list
-  - Biomarkers: NT-proBNP, troponin, LDL/HDL cholesterol, triglycerides
-  - Oncology: Active cancer, primary site, stage, treatment status
-  - Dermatology: Eczema history, IGA score
-  - Women's Health: Pregnancy status
-- **AI Trial Matching System** with 9 fixed categories:
-  - Diabetes Trials, Cardiovascular Trials, Chronic Kidney Disease Trials
-  - Eczema/Dermatology Trials, Oncology Trials, Women's Health Trials
-  - Metabolic/Obesity Trials, Neurology Trials, General Preventive Health Trials
-- **Updated Patient Table** with new columns:
-  - Qualified Condition, Top Matched Trial Category
-  - Eligibility (score + label: Eligible/Ineligible/Needs Info)
-  - Current Status (Pending/Contacted/Interested/Onboard)
-  - Last Contacted date
-  - Centered action icons: View details, Start call, Re-score eligibility
-- **Patient Detail Page** (new route: /patients/[id]):
-  - Comprehensive overview with demographics and trial matching
-  - Eligibility summary with AI category, score (0-100), and key criteria
-  - Complete clinical data table with clean field labels
-  - Action panel: Start Call, Update Status, Request Follow-up
-  - Two-column responsive layout
-- **OpenAI Integration Setup**:
-  - Replit AI Integrations installed (no API key required)
-  - Python OpenAI package configured
-  - Ready for backend AI eligibility scoring
-- **Updated API Endpoints**:
-  - `POST /eligibility/:id` - Calculate AI eligibility score
-  - `POST /calls/start` - Initiate patient calls
-  - `PATCH /patients/:id` - Update patient data
-- **Mock Data**: 6 patients with realistic clinical profiles across different conditions
-- **Removed animations**: Dashboard and table now load instantly for professional UX
-- Architect-reviewed and approved for enterprise deployment
+**October 18, 2025** - Supabase Integration with Local Eligibility Scoring
+- **Complete Supabase Integration**:
+  - Replaced mock data with live Supabase database queries
+  - Realtime subscriptions for automatic dashboard updates
+  - Environment variables configured: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY
+  - Dynamic schema introspection supports any table structure
+- **Local Deterministic Eligibility Scoring**:
+  - No external AI API required (removed OpenAI dependency)
+  - 9 fixed trial categories with rule-based scoring algorithm
+  - Instant client-side calculation (0ms latency)
+  - Results cached in Supabase columns: top_category, eligibility_score, eligibility_label
+  - Re-score button recalculates and updates database
+- **Flexible Patient Data Model** (supports snake_case Supabase schema):
+  - Demographics: dob, age, sex, height_cm, weight_kg, bmi
+  - Vitals: systolic_bp, diastolic_bp
+  - Lifestyle: smoking_status, pack_years
+  - Diabetes: diabetes_dx, diabetes_type, a1c_pct_recent, egfr_ml_min_1_73m2_recent
+  - Cardiovascular: mi_history, stroke_tia_history, pad_history, hf_history, lvef_pct, nyha_class
+  - Medications: statin_current, anticoagulant_current, sglt2_current, glp1_current, insulin_current
+  - Biomarkers: ntprobnp_pg_ml, ldl_mg_dl, hdl_mg_dl, triglycerides_mg_dl
+  - Oncology: active_cancer, cancer_primary_site, cancer_stage, treatment_status
+  - Dermatology: eczema_history, iga_score
+  - Women's Health: pregnancy_status
+- **Dynamic Field Labels**: Automatic conversion from snake_case to human-readable labels
+  - Example: `egfr_ml_min_1_73m2_recent` → "Recent eGFR (mL/min/1.73m²)"
+- **Updated Dashboard**:
+  - Loads patient data directly from Supabase on mount
+  - Realtime updates when data changes
+  - Re-score button triggers local calculation + database update
+  - Status changes persist to Supabase immediately
+- **Updated Patient Detail Page**:
+  - Fetches individual patient from Supabase by ID
+  - Displays all clinical fields dynamically (no hardcoded columns)
+  - Re-score and status update buttons persist to database
+  - Shows computed eligibility reasons from scoring algorithm
+- Removed all OpenAI/AI API references
+- Architect-reviewed and approved for production deployment
 
 **October 18, 2025** - Enterprise UI Polish
 - Removed all emojis, replaced with professional SVG icons
@@ -147,28 +147,30 @@ Ready-to-use API service functions for:
 - **Framework**: Next.js 15 with App Router
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS v4
-- **State Management**: React useState (client components)
+- **Database**: Supabase (PostgreSQL) with @supabase/supabase-js client
+- **State Management**: React useState with Supabase realtime subscriptions
 - **Development**: Next.js dev server on port 5000
 - **Deployment**: Autoscale deployment target for production
 - **Package Manager**: npm
 
-### Backend Integration Points
-The frontend is structured to easily connect to Python backend endpoints:
+### Supabase Configuration
+Environment variables required:
+- `NEXT_PUBLIC_SUPABASE_URL` - Your Supabase project URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase anonymous/public API key
 
-1. **Patient Data**: `GET /patients` → Load patient list
-2. **Eligibility Scoring**: `POST /score` → AI-powered scoring
-3. **Automated Calling**: `POST /call/start` → Initiate calls
-4. **Patient Updates**: `PATCH /patients/:id` → Save changes
-5. **CSV Import**: `POST /patients/import` → Bulk data import
-
-Set `NEXT_PUBLIC_API_URL` environment variable to connect to backend.
+The application connects directly to Supabase for:
+1. **Patient Data**: Real-time database queries
+2. **Eligibility Scoring**: Local computation with Supabase caching
+3. **Patient Updates**: Direct Supabase updates with realtime sync
+4. **Automated Calling**: Optional Python backend integration via `NEXT_PUBLIC_API_URL`
 
 ## Development Workflow
 The Next.js development server runs automatically via the "Next.js Dev Server" workflow.
 - Access the app through the webview on port 5000
 - Hot reload is enabled for instant changes
-- Mock data provides immediate functionality
-- Backend can be developed independently and connected via API
+- Data loads from Supabase database in real-time
+- Eligibility scoring runs locally in the browser (no backend required)
+- Optional Python backend can be connected via `NEXT_PUBLIC_API_URL` for calling features
 
 ## User Flow
 1. **Landing Page** → User sees app overview and features
