@@ -38,7 +38,7 @@ npm run lint
 
 ```bash
 # Run the backend application
-python main.py
+uv run main.py
 ```
 
 ## Key Technologies
