@@ -2,102 +2,44 @@ import { supabase } from './supabase';
 import { calculateLocalEligibility } from './eligibilityScoring';
 
 export interface ListPatientsParams {
-  filters?: Record<string, any>;
-  studyTypes?: string[];
-  searchQuery?: string;
-  contactStatus?: string;
   sort?: { column: string; ascending: boolean };
-  limit?: number;
-  offset?: number;
 }
 
 const TABLE_NAME = 'CrobotMaster';
 
-function matchesStudyType(qualifiedDisease: string, studyType: string): boolean {
-  const lowerDisease = (qualifiedDisease || '').toLowerCase();
-  
-  switch (studyType) {
-    case 'Diabetes':
-      return lowerDisease.includes('diabetes');
-    case 'Chronic Kidney Disease':
-      return lowerDisease.includes('ckd') || lowerDisease.includes('kidney');
-    case 'Cardiovascular Disease':
-    case 'CVD':
-      return lowerDisease.includes('cardiovascular') || lowerDisease.includes('cvd') || lowerDisease.includes('heart');
-    case 'Oncology':
-      return lowerDisease.includes('oncology') || lowerDisease.includes('cancer');
-    case 'Dermatology':
-      return lowerDisease.includes('dermatology') || lowerDisease.includes('eczema') || lowerDisease.includes('skin');
-    case 'Metabolic/Obesity':
-      return lowerDisease.includes('metabolic') || lowerDisease.includes('obesity');
-    case 'Neurology':
-      return lowerDisease.includes('neurology') || lowerDisease.includes('stroke');
-    default:
-      return lowerDisease.includes(studyType.toLowerCase());
-  }
-}
-
 export const api = {
   async listPatients(params: ListPatientsParams = {}) {
-    let query = supabase.from(TABLE_NAME).select('*', { count: 'exact' });
+    const BATCH_SIZE = 1000;
+    let allData: any[] = [];
+    let from = 0;
+    let hasMore = true;
 
-    const hasSearch = params.searchQuery && params.searchQuery.trim();
-    const hasStudyTypes = params.studyTypes && params.studyTypes.length > 0;
+    // Paginate through all rows in batches to bypass 1000 row limit
+    while (hasMore) {
+      let query = supabase
+        .from(TABLE_NAME)
+        .select('*')
+        .range(from, from + BATCH_SIZE - 1);
 
-    if (hasSearch) {
-      const search = params.searchQuery!.trim();
-      const normalizedSearch = search.replace(/[\s\-]/g, '');
-      
-      query = query.or(
-        `full_name.ilike.%${search}%,phone.ilike.%${normalizedSearch}%,email.ilike.%${search}%`
-      );
-    }
-
-    if (params.contactStatus && params.contactStatus !== 'All') {
-      query = query.eq('status', params.contactStatus);
-    }
-
-    if (params.filters) {
-      Object.entries(params.filters).forEach(([key, value]) => {
-        if (value !== null && value !== undefined && value !== '') {
-          query = query.eq(key, value);
-        }
-      });
-    }
-
-    if (params.sort) {
-      query = query.order(params.sort.column, { ascending: params.sort.ascending });
-    }
-
-    if (!hasStudyTypes) {
-      if (params.limit && params.offset !== undefined) {
-        query = query.range(params.offset, params.offset + params.limit - 1);
-      } else if (params.limit) {
-        query = query.limit(params.limit);
+      // Apply sorting if specified
+      if (params.sort) {
+        query = query.order(params.sort.column, { ascending: params.sort.ascending });
       }
-      
-      const { data, error, count } = await query;
+
+      const { data, error } = await query;
       if (error) throw error;
-      return { data: data || [], count: count || 0 };
+
+      if (data && data.length > 0) {
+        allData = [...allData, ...data];
+        from += BATCH_SIZE;
+        // Continue if we got a full batch (might be more rows)
+        hasMore = data.length === BATCH_SIZE;
+      } else {
+        hasMore = false;
+      }
     }
 
-    const { data, error } = await query;
-    if (error) throw error;
-
-    const filteredData = (data || []).filter(patient => {
-      const qualifiedDisease = patient.qualified_disease || patient.qualified_condition || '';
-      return params.studyTypes!.every(studyType => matchesStudyType(qualifiedDisease, studyType));
-    });
-
-    const totalCount = filteredData.length;
-    
-    const paginatedData = params.limit && params.offset !== undefined
-      ? filteredData.slice(params.offset, params.offset + params.limit)
-      : params.limit
-      ? filteredData.slice(0, params.limit)
-      : filteredData;
-
-    return { data: paginatedData, count: totalCount };
+    return { data: allData, count: allData.length };
   },
 
   async getPatient(id: string) {

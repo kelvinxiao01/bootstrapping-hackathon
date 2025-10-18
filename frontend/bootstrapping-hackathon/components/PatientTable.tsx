@@ -97,7 +97,18 @@ export default function PatientTable({ patients, onSelectPatient, onUpdatePatien
               const qualifiedDisease = patient.qualified_disease || 'General';
               const badges = getAllStudyTypeBadges(qualifiedDisease);
               const status = patient.status || 'Pending';
-              const lastContacted = patient.last_contacted || '—';
+
+              // Format timestamptz to human-readable date/time
+              const lastContacted = patient.last_contacted
+                ? new Date(patient.last_contacted).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })
+                : '—';
+
               const initials = name.split(' ').map(n => n[0]).join('').toUpperCase();
 
               return (
