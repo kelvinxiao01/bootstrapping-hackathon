@@ -184,8 +184,8 @@ export default function Dashboard() {
 
   const handleStartCall = async (patient: Patient) => {
     try {
-      const result = await api.startCall(patient.patient_id);
-      alert(`Call started successfully! Call ID: ${result.call_id}`);
+      const result = await api.startCall(patient); // Pass entire patient object
+      alert(`Call started successfully! Job ID: ${result.job_id}`);
 
       await handlePatientUpdate(patient.patient_id, {
         last_contacted: new Date().toISOString(), // Full ISO timestamp for timestamptz
@@ -193,7 +193,8 @@ export default function Dashboard() {
       });
     } catch (error) {
       const name = patient.name || 'Patient';
-      alert(`Mock: Initiating call to ${name}...`);
+      console.error('Call failed:', error);
+      alert(`Failed to start call to ${name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 

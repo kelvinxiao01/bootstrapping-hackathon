@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Patient, EligibilityStatus } from '@/types/patient';
 import { generateRandomScore } from '@/lib/mockData';
+import { api } from '@/lib/api';
 
 interface PatientDetailProps {
   patient: Patient;
@@ -40,10 +41,25 @@ export default function PatientDetail({ patient, onClose, onUpdate }: PatientDet
 
   const handleStartCall = async () => {
     setIsStartingCall(true);
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    alert(`Call initiated for ${patient.name}\n\nPhone: ${patient.phone}\n\nThe AI calling system will contact this patient shortly.`);
-    setIsStartingCall(false);
+
+    try {
+      const result = await api.startCall(patient);
+      alert(`Call started successfully! Job ID: ${result.job_id}`);
+
+      // Update patient with new status and timestamp
+      const updated = {
+        ...editedPatient,
+        status: 'Contacted',
+        last_contacted: new Date().toISOString()
+      };
+      setEditedPatient(updated);
+      onUpdate(updated);
+    } catch (error) {
+      console.error('Call failed:', error);
+      alert(`Failed to start call to ${patient.name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsStartingCall(false);
+    }
   };
 
   const handleCriteriaChange = (key: keyof typeof patient.eligibilityCriteria) => {

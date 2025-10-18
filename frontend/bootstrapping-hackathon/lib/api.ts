@@ -65,14 +65,33 @@ export const api = {
     return data;
   },
 
-  async startCall(patientId: string): Promise<{ call_id: string; status: string }> {
+  async startCall(patient: any): Promise<{ success: boolean; room_name: string; job_id: string; message: string }> {
     const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-    const response = await fetch(`${API_BASE_URL}/calls/start`, {
+
+    // Build participant context from patient data
+    const participantContext = patient.qualified_disease
+      ? `Researcher with expertise in ${patient.qualified_disease}. Found on ResearchGate.`
+      : 'Researcher found on ResearchGate.';
+
+    const response = await fetch(`${API_BASE_URL}/api/launch-call`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json'},
-      body: JSON.stringify({ patient_id: patientId }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        participant_name: patient.name || patient.full_name || 'Unknown',
+        participant_context: participantContext,
+        phone_number: patient.phone,
+        trial_name: patient.qualified_disease || 'Clinical Trial',
+        trial_description: 'A clinical trial testing a new diabetes treatment with monthly visits over 6 months.',
+        compensation_info: '$500 per visit',
+        contact_info: 'For questions, contact research@clinicaltrials.com'
+      }),
     });
-    if (!response.ok) throw new Error('Failed to start call');
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Failed to start call: ${error}`);
+    }
+
     return response.json();
   },
 
