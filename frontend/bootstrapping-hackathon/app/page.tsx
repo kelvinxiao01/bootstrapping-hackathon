@@ -9,7 +9,7 @@ export default function Home() {
   
   const subheadlines = [
     'AI-powered patient calls',
-    'Seamless eligibility screening',
+    'Eligibility screening',
     'Automated follow-ups'
   ];
 
@@ -56,56 +56,74 @@ export default function Home() {
 
       {/* Hero Section */}
       <main className="relative z-10">
-        <section className="pt-40 pb-32 px-6">
-          <div className="max-w-4xl mx-auto text-center space-y-12">
-            {/* Main Headline */}
-            <div className="space-y-6">
-              <h1 className="text-5xl md:text-6xl font-semibold text-slate-900 tracking-tight leading-tight">
-                Empower Your&nbsp;
-                <span className="relative inline-block align-baseline">
-                  <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent font-extrabold italic">
-                    Research Team
+        <section className="pt-32 pb-16 px-6">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex flex-col lg:flex-row gap-8 items-center">
+              {/* Text Content - Left Side */}
+              <div className="lg:w-1/2 space-y-6">
+                <h1 className="text-5xl md:text-6xl font-semibold text-slate-900 tracking-tight leading-tight">
+                  Empower Your&nbsp;
+                  <span className="relative inline-block align-baseline">
+                    <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent font-extrabold italic">
+                      Research Team
+                    </span>
+                    <span
+                      aria-hidden
+                      className="absolute left-0 right-0 -bottom-2 h-1 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600"
+                    />
                   </span>
-                  {/* gradient underline */}
-                  <span
-                    aria-hidden
-                    className="absolute left-0 right-0 -bottom-2 h-1 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600"
-                  />
-                </span>
-                &nbsp;:
-              </h1>
-              
-              {/* Animated Rotating Subheadline */}
-              <div className="h-40 flex items-center justify-center overflow-visible py-4">
-                {subheadlines.map((text, index) => (
-                  <h2
-                    key={index}
-                    className={`absolute text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 transition-all duration-1000 drop-shadow-lg leading-relaxed ${
-                      currentSubheadline === index
-                        ? 'opacity-100 translate-y-0'
-                        : 'opacity-0 translate-y-4'
-                    }`}
-                  >
-                    {text}
-                  </h2>
-                ))}
-              </div>
-            </div>
+                </h1>
+                
+                {/* Animated Rotating Subheadline - Now on its own line */}
+                <div className="h-24 flex items-center overflow-visible">
+                  {subheadlines.map((text, index) => (
+                    <h2
+                      key={index}
+                      className={`absolute text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 transition-all duration-1000 drop-shadow-lg leading-tight ${
+                        currentSubheadline === index
+                          ? 'opacity-100 translate-y-0'
+                          : 'opacity-0 translate-y-4'
+                      }`}
+                    >
+                      {text}
+                    </h2>
+                  ))}
+                </div>
 
-            {/* CTA Button */}
-            <div className="flex flex-col items-center space-y-4">
-              <Link
-                href="/dashboard"
-                className="inline-flex items-center space-x-2 px-10 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-medium shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 hover:scale-105 transition-all duration-200"
-              >
-                <span>Enter Dashboard</span>
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </Link>
-              <p className="text-sm text-slate-500 font-light">
-                Streamline patient recruitment and trial management
-              </p>
+                {/* CTA Button */}
+                <div className="pt-4">
+                  <Link
+                    href="/dashboard"
+                    className="inline-flex items-center justify-center space-x-2 px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-medium shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 hover:scale-105 transition-all duration-200 w-full sm:w-auto"
+                  >
+                    Get Started
+                  </Link>
+                </div>
+              </div>
+
+              {/* Video - Right Side */}
+              <div className="lg:w-1/2 w-full mt-8 lg:mt-0">
+                <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-slate-200/50 bg-slate-50">
+                  <div 
+                    className="relative"
+                    style={{ paddingBottom: '62.5%', height: 0 }}
+                  >
+                    <iframe 
+                      src="https://www.loom.com/embed/b7849098cbc1420f872075c631b35936?sid=a65de85d-6f0c-4da3-8671-f2a0d075bb51" 
+                      frameBorder="0" 
+                      allowFullScreen 
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        borderRadius: '0.5rem'
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
