@@ -68,9 +68,10 @@ export const api = {
     const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
     // Build participant context from patient data
+    // Note: They are PATIENTS with a medical condition who CONSENTED to trial contact
     const participantContext = patient.qualified_disease
-      ? `Researcher with expertise in ${patient.qualified_disease}. Found on ResearchGate.`
-      : 'Researcher found on ResearchGate.';
+      ? `Patient with ${patient.qualified_disease} who consented to clinical trial outreach via ResearchGate.`
+      : 'Patient who consented to clinical trial outreach via ResearchGate.';
 
     const response = await fetch(`${API_BASE_URL}/api/launch-call`, {
       method: 'POST',

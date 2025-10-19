@@ -136,15 +136,22 @@ class LiveKitService:
         room_name = await self.create_room()
 
         # Prepare trial data for agent
+        # Convert "Researcher with expertise in X" to "Patient with X who consented..."
+        patient_context = participant_context.replace(
+            "Researcher with expertise in", "Patient with"
+        ).replace(
+            "Found on ResearchGate", "who consented to clinical trial outreach via ResearchGate"
+        )
+
         trial_data = {
             "participant_name": participant_name,
             "phone_number": phone_number,
             "trial_name": trial_name or "Clinical Trial",
             "trial_description": trial_description or "",
-            "eligibility_criteria": participant_context,  # Use context as eligibility criteria
+            "eligibility_criteria": patient_context,  # Patient condition, not research expertise
             "compensation_info": compensation_info or "",
             "contact_info": contact_info or "",
-            "additional_context": participant_context,
+            "additional_context": patient_context,
         }
 
         # Add optional SIP configuration overrides
