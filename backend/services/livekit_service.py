@@ -136,11 +136,11 @@ class LiveKitService:
         room_name = await self.create_room()
 
         # Prepare trial data for agent
-        # Convert "Researcher with expertise in X" to "Patient interested in X trials"
+        # Convert "Researcher with expertise in X" to "Patient with X who consented..."
         patient_context = participant_context.replace(
-            "Researcher with expertise in", "Patient interested in"
+            "Researcher with expertise in", "Patient with"
         ).replace(
-            "Found on ResearchGate", "Recruited via ResearchGate patient platform"
+            "Found on ResearchGate", "who consented to clinical trial outreach via ResearchGate"
         )
 
         trial_data = {
