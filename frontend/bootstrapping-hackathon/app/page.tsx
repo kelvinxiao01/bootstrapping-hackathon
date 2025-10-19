@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 
 export default function Home() {
   const [currentSubheadline, setCurrentSubheadline] = useState(0);
@@ -30,14 +31,17 @@ export default function Home() {
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/70 backdrop-blur-lg border-b border-slate-200/50">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center">
-                <span className="text-white text-sm font-semibold">CR</span>
+            <Link href="/" className="group">
+              <div className="relative w-40 h-10">
+                <Image
+                  src="/images/crobot.svg"
+                  alt="CROBOT Logo"
+                  fill
+                  className="object-contain object-left"
+                  priority
+                />
               </div>
-              <span className="text-lg font-semibold text-slate-800 tracking-tight">
-                CRO Recruiter
-              </span>
-            </div>
+            </Link>
             <nav className="flex items-center space-x-8">
               <Link href="/dashboard" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
                 Dashboard
@@ -113,7 +117,7 @@ export default function Home() {
               Complete Visibility from Call to Enrollment
             </h2>
             <p className="text-lg text-slate-600 leading-relaxed max-w-2xl mx-auto font-light">
-              CRO Recruiter connects patient call data to a centralized dashboard where coordinators can evaluate eligibility criteria, track recruitment progress, and make informed matching decisions. Every interaction is captured, scored, and presented in an intuitive interface designed for clinical research teams.
+              CROBOT connects patient call data to a centralized dashboard where coordinators can evaluate eligibility criteria, track recruitment progress, and make informed matching decisions. Every interaction is captured, scored, and presented in an intuitive interface designed for clinical research teams.
             </p>
           </div>
         </section>
@@ -129,7 +133,7 @@ export default function Home() {
               <div className="p-6 rounded-xl bg-white/80 backdrop-blur-sm border border-slate-200/50 hover:shadow-lg hover:border-blue-300/50 transition-all duration-200">
                 <div className="w-12 h-12 mx-auto mb-4 rounded-lg bg-blue-50 flex items-center justify-center">
                   <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                   </svg>
                 </div>
                 <h3 className="text-lg font-semibold text-slate-800 mb-2 text-center">
@@ -249,12 +253,7 @@ export default function Home() {
           <div className="max-w-7xl mx-auto">
             <div className="grid md:grid-cols-3 gap-8 mb-8">
               <div>
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
-                    <span className="text-white text-sm font-semibold">CR</span>
-                  </div>
-                  <span className="text-lg font-semibold">CRO Recruiter</span>
-                </div>
+                <h3 className="text-sm font-semibold uppercase tracking-wider mb-4">About CROBOT</h3>
                 <p className="text-sm text-slate-400 leading-relaxed font-light">
                   Streamlining clinical trial recruitment for research coordinators and CROs worldwide.
                 </p>
@@ -300,7 +299,7 @@ export default function Home() {
 
             <div className="pt-8 border-t border-slate-800 text-center">
               <p className="text-sm text-slate-500 font-light">
-                © 2025 CRO Recruiter. Built for research coordinators and clinical trial teams.
+                &copy; 2025 CROBOT. Built for research coordinators and clinical trial teams.
               </p>
             </div>
           </div>

@@ -141,16 +141,13 @@ export default function PatientTable({ patients, onSelectPatient, onUpdatePatien
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <select
-                      value={status}
-                      onChange={(e) => handleStatusChange(patient, e.target.value)}
-                      className={`px-3 py-1.5 rounded-lg text-sm font-medium border-0 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer ${statusConfig[status as keyof typeof statusConfig]?.color || 'text-gray-700'} ${statusConfig[status as keyof typeof statusConfig]?.bg || 'bg-gray-100'}`}
+                    <span 
+                      className={`inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium ${
+                        statusConfig[status as keyof typeof statusConfig]?.color || 'text-gray-700'
+                      } ${statusConfig[status as keyof typeof statusConfig]?.bg || 'bg-gray-100'}`}
                     >
-                      <option value="Pending">Pending</option>
-                      <option value="Contacted">Contacted</option>
-                      <option value="Interested">Interested</option>
-                      <option value="Onboard">Onboard</option>
-                    </select>
+                      {status}
+                    </span>
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-sm text-[var(--muted)]">{lastContacted}</div>
