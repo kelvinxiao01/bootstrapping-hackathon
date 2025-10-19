@@ -14,7 +14,6 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [showImport, setShowImport] = useState(false);
   const [selectedStudyTypes, setSelectedStudyTypes] = useState<string[]>([]);
-  const [contactStatus, setContactStatus] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [sortBy, setSortBy] = useState<string>('last_contacted_desc');
@@ -29,18 +28,6 @@ export default function Dashboard() {
     { value: 'Dermatology', label: 'Dermatology', color: 'bg-yellow-100 text-yellow-800' },
     { value: 'Metabolic', label: 'Metabolic/Obesity', color: 'bg-orange-100 text-orange-800' },
     { value: 'Neurology', label: 'Neurology', color: 'bg-indigo-100 text-indigo-800' },
-  ];
-
-  const contactStatuses = [
-    'All',
-    'Pending',
-    'Contacted',
-    'Interested',
-    'Onboard',
-    'Needs Info',
-    'Ineligible',
-    'Unreachable',
-    'Do Not Contact'
   ];
 
   // Load all patients once on mount
@@ -69,7 +56,7 @@ export default function Dashboard() {
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedStudyTypes, searchQuery, sortBy, contactStatus]);
+  }, [selectedStudyTypes, searchQuery, sortBy]);
 
   const loadPatients = async () => {
     try {
@@ -127,11 +114,6 @@ export default function Dashboard() {
 
         return name.includes(search) || email.includes(search) || phone.includes(normalizedSearch);
       });
-    }
-
-    // 2. Filter by contact status
-    if (contactStatus !== 'All') {
-      filtered = filtered.filter(patient => patient.status === contactStatus);
     }
 
     // 3. Filter by study types (must match ALL selected types)
@@ -243,7 +225,7 @@ export default function Dashboard() {
   }, {} as Record<string, number>);
 
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
-  const hasActiveFilters = selectedStudyTypes.length > 0 || searchQuery.trim() || contactStatus !== 'All';
+  const hasActiveFilters = selectedStudyTypes.length > 0 || searchQuery.trim();
 
   if (loading && allPatients.length === 0) {
     return (
@@ -262,11 +244,10 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--background)]">
+    <div className="min-h-screen bg-[#f9fafb]">
       <Header />
-      
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        <div className="flex items-center justify-between">
+      <main className="pt-28 px-6">
+        <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-[var(--foreground)]">Patients</h1>
             <p className="text-[var(--muted)] mt-1">{totalCount} total patients</p>
@@ -282,21 +263,24 @@ export default function Dashboard() {
           </button>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {availableStudyTypes.slice(0, 4).map(type => (
-            <div key={type.value} className="bg-white rounded-xl border border-[var(--border)] p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className={`text-xs font-semibold uppercase tracking-wider ${type.color.split(' ')[1]}`}>
-                    {type.label}
-                  </p>
-                  <p className="text-3xl font-bold mt-2 text-[var(--foreground)]">
-                    {studyTypeCounts[type.value] || 0}
-                  </p>
+        <div className="space-y-4">
+          <h2 className="text-lg font-medium text-[var(--foreground)]">People qualified for:</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {availableStudyTypes.slice(0, 4).map(type => (
+              <div key={type.value} className="bg-white rounded-xl border border-[var(--border)] p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className={`text-xs font-semibold uppercase tracking-wider ${type.color.split(' ')[1]}`}>
+                      {type.label}
+                    </p>
+                    <p className="text-3xl font-bold mt-2 text-[var(--foreground)]">
+                      {studyTypeCounts[type.value] || 0}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         <div className="bg-white rounded-xl border border-[var(--border)] p-6 space-y-4">
@@ -324,28 +308,7 @@ export default function Dashboard() {
               <option value="name_desc">Name (Z-A)</option>
               <option value="age_years_desc">Age (Oldest First)</option>
               <option value="age_years_asc">Age (Youngest First)</option>
-              <option value="status_asc">Status (A-Z)</option>
-              <option value="status_desc">Status (Z-A)</option>
             </select>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-[var(--foreground)]">Contact Status:</label>
-            <div className="flex flex-wrap gap-2">
-              {contactStatuses.map(status => (
-                <button
-                  key={status}
-                  onClick={() => setContactStatus(status)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                    contactStatus === status
-                      ? 'bg-blue-600 text-white ring-2 ring-offset-2 ring-blue-500'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  {status}
-                </button>
-              ))}
-            </div>
           </div>
 
           <div className="space-y-2">
@@ -365,12 +328,9 @@ export default function Dashboard() {
                   {selectedStudyTypes.includes(type.value) && ' ✓'}
                 </button>
               ))}
-              {(selectedStudyTypes.length > 0 || contactStatus !== 'All') && (
+              {(selectedStudyTypes.length > 0) && (
                 <button
-                  onClick={() => {
-                    setSelectedStudyTypes([]);
-                    setContactStatus('All');
-                  }}
+                  onClick={() => setSelectedStudyTypes([])}
                   className="px-4 py-2 rounded-lg text-sm font-medium bg-red-50 text-red-600 hover:bg-red-100"
                 >
                   Clear All Filters
@@ -399,7 +359,6 @@ export default function Dashboard() {
                 onClick={() => {
                   setSearchQuery('');
                   setSelectedStudyTypes([]);
-                  setContactStatus('All');
                 }}
                 className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-medium"
               >
@@ -501,7 +460,7 @@ export default function Dashboard() {
                 onClick={() => setCallNotification(null)}
                 className="text-current opacity-70 hover:opacity-100"
               >
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                   <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
                 </svg>
               </button>

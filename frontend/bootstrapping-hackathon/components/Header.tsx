@@ -1,17 +1,21 @@
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function Header() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-[var(--border)]">
       <div className="max-w-7xl mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
-          <Link href="/" className="flex items-center space-x-3 group">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--accent)] to-blue-700 flex items-center justify-center smooth-transition group-hover:scale-105">
-              <span className="text-white text-sm font-semibold">CR</span>
+          <Link href="/" className="group">
+            <div className="relative w-40 h-10">
+              <Image
+                src="/images/crobot.svg"
+                alt="CROBOT Logo"
+                fill
+                className="object-contain object-left"
+                priority
+              />
             </div>
-            <span className="text-lg font-semibold text-[var(--foreground)] tracking-tight">
-              CRO Recruiter
-            </span>
           </Link>
           
           <nav className="flex items-center space-x-1">

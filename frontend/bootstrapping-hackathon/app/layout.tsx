@@ -8,7 +8,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "CRO Recruiter - Clinical Trial Patient Management",
+  title: "CROBOT - Clinical Trial Patient Management",
   description: "Streamline clinical trial recruitment with AI-powered eligibility screening",
 };
 
